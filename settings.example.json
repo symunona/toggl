@@ -1,0 +1,6 @@
+{
+    "token": "GET_THIS_FROM_https://track.toggl.com/profile",
+    // This is your workspace_id which you can get from the URL,
+    // when clicking Reports: https://track.toggl.com/reports/summary/[workspace_id]
+    "workspace_id": 1137608
+}

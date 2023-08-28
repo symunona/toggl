@@ -1,0 +1,34 @@
+{
+  "name": "toggl-console",
+  "version": "1.0.0",
+  "description": "get your toggl reports in plain text format",
+  "main": "toggl-pull.js",
+  "dependencies": {
+    "ajax-request": "^1.2.3",
+    "axios": "^0.24.0",
+    "file-match": "^1.0.2",
+    "file-system": "^2.2.2",
+    "follow-redirects": "^1.14.5",
+    "moment": "^2.29.4",
+    "underscore": "^1.13.6",
+    "utils-extend": "^1.0.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/symunona/toggl.git"
+  },
+  "keywords": [
+    "toggl",
+    "console",
+    "retriever"
+  ],
+  "author": "symunona",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/symunona/toggl/issues"
+  },
+  "homepage": "https://github.com/symunona/toggl#readme"
+}
