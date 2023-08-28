@@ -11,6 +11,10 @@ Install:
 
 `npm i`
 
+## Setup
+
+Create a `settings.json` file with your token and workspace ID (see `settings.example.json`)
+
 Run
 
 `node toggl-pull.js`
