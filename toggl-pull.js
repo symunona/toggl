@@ -13,6 +13,9 @@
  * Configuration:
  * create a settings.json file as the example
  *
+ * Add a multiplier that adds a specific percentage to time
+ * to account for gross time spent on a task.
+ *
  */
 
 const { readFileSync } = require('fs')
@@ -34,6 +37,7 @@ let weekOffset = 1
 let from = moment().day((-7 * weekOffset) - 1).format(FORMAT)
 let to = moment().day((-7 * weekOffset) + 5).format(FORMAT)
 let week = moment(from).isoWeek() + 1
+let multiplier = 1
 
 console.log(`---<LOG retirever>---`)
 
@@ -42,6 +46,14 @@ if (process.argv[2]) {
     if (!isNaN(parseInt(process.argv[2]))) {
         // number: week offset
         weekOffset = parseInt(process.argv[2])
+        from = moment().day((-7 * weekOffset) - 1).format(FORMAT)
+        to = moment().day((-7 * weekOffset) + 5).format(FORMAT)
+
+        // Multiplier - for accounting for context switches - given in percentages
+        if (process.argv[3]){
+            multiplier = 1 + (parseInt(process.argv[3]) / 100)
+            console.log(`Context Switch Multiplier: ${Math.round(multiplier * 100)}%`)
+        }
     } else {
         // return all activities in a month.
         if (process.argv[2] === '-m') {
@@ -54,8 +66,14 @@ if (process.argv[2]) {
             from = moment().month(m-1).day(0).startOf('day').format(FORMAT)
             to = moment().month(m-1).day(daysInMonth-1).endOf('day').format(FORMAT)
             week = null
+
+            // Multiplier - for accounting for context switches - given in percentages
+            if (process.argv[4]){
+                multiplier = 1 + (parseInt(process.argv[4]) / 100)
+                console.log(`Context Switch Multiplier: ${Math.round(multiplier * 100)}%`)
+            }
         } else {
-            // Default
+
         }
     }
 }
@@ -96,9 +114,10 @@ axios.get(API_BASE, {
         let sum = 0
 
         _.sortBy(project.items, 'time').reverse().map((entry) => {
-            let timeEntry = formatDuration(entry.time) + PAD + entry.title.time_entry
+            const duration = entry.time * multiplier
+            let timeEntry = formatDuration(duration) + PAD + entry.title.time_entry
             console.log(timeEntry)
-            sum += entry.time
+            sum += duration
         })
         console.log('_'.repeat(LINE_LENGTH))
         console.log(formatDuration(sum) + PAD + `${week?'Week '+week+' ':''}SUM `)
