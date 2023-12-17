@@ -1,5 +1,5 @@
 
-export function cmdParamsParser(){
+module.exports.cmdParamsParser = function(){
     const options = {}
     for (let paramIndex in process.argv) {
         const paramKey = process.argv[paramIndex]

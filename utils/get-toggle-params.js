@@ -1,4 +1,10 @@
-export function getToggleParams(options) {
+const moment = require('moment')
+
+const API_DATE_FORMAT = "YYYY-MM-DD"
+
+module.exports.API_DATE_FORMAT = API_DATE_FORMAT
+
+module.exports.getToggleParams = function (options) {
 
     // number: week offset
     let weekOffset = 1
@@ -24,7 +30,7 @@ export function getToggleParams(options) {
         to = moment().month(monthNumber - 1).day(daysInMonth - 1).endOf('day').format(API_DATE_FORMAT)
         week = null
     }
-    
+
     // Multiplier - for accounting for context switches - given in percentages
     if (options.r) {
         multiplier = 1 + (options.r / 100)

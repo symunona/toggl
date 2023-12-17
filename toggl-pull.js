@@ -23,15 +23,15 @@ const { join } = require('path')
 const { fetchCached } = require('./utils/cache')
 const { cmdParamsParser } = require('./utils/options-parser')
 
-
 const SETTINGS = JSON.parse(readFileSync(join(__dirname, 'settings.json'), 'utf8'))
 
 const LINE_LENGTH = 100
-const API_DATE_FORMAT = "YYYY-MM-DD"
+
 const API_BASE = 'https://api.track.toggl.com/reports/api/v2/summary'
 const moment = require('moment')
 const _ = require('underscore')
-const { getToggleParams } = require('./utils/get-toggle-params')
+const { getToggleParams, API_DATE_FORMAT } = require('./utils/get-toggle-params')
+const { getCurrencyExchangeRatesForDay } = require('./utils/currency-exchange')
 
 const companyFields = ['company', 'country', 'address', 'tax']
 
@@ -65,7 +65,11 @@ const fetchCachedParams = {
 }
 
 
-fetchCached(fetchCachedParams).then((response) => {
+fetchCached(fetchCachedParams).then(async (response) => {
+
+    const exchangeRates = await getCurrencyExchangeRatesForDay(new Date())
+    console.warn(exchangeRates)
+
     const projects = response.data
 
     for (const i in projects) {
@@ -134,16 +138,24 @@ fetchCached(fetchCachedParams).then((response) => {
         })
 
         hr()
-        printFormattedLine('SUM', sumTime * 60, '', sumPrice + ' ' + client.currency)
+        printFormattedLine('SUM NET in ' + client.currency, sumTime * 60, '', sumPrice + ' ' + client.currency)
 
-        // In CHF
+        // If the currency is not in CHF, we need the CHF amount in the end.
+        if (client.currency !== 'CHF'){
+            const chfValue = Math.round(sumPrice * exchangeRates[client.currency])
+            printFormattedLine('SUM Net in CHF', '', '',  chfValue + ' CHF')
+
+            
+        }
+
 
         console.log('')
     }
-}).catch((error) => {
-    console.error('hmm...', error)
-    debugger
 })
+// .catch((error) => {
+//     console.error('hmm...', error)
+//     debugger
+// })
 
 console.log('')
 

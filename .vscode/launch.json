@@ -17,7 +17,7 @@
             "name": "Toggl",
             "program": "${workspaceFolder}/toggl-pull.js",
             "request": "launch",
-            "args":[ "-w", "0", "-r", "20" ],
+            "args":[ "-w", "0", "-r", "20", "-s", "RR" ],
             "skipFiles": [
                 "<node_internals>/**"
             ],
