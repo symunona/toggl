@@ -4,9 +4,7 @@ const {readFileSync, existsSync, writeFileSync, mkdirSync} = require('fs')
 
 const root = `cache/`
 
-const cache = get('api') || {}
-
-function get(key){
+module.exports.get = function get(key){
     if (!existsSync(root + key + '.json')){
         console.warn('Cache does not exist for', key)
         return null
@@ -19,7 +17,9 @@ function get(key){
     }
 }
 
-function set(key, value){
+const cache = module.exports.get('api') || {}
+
+module.exports.set = function set(key, value){
     if (!existsSync(root)){ mkdirSync(root)}
     writeFileSync(root + key + '.json', JSON.stringify(value, null, 2))
 }
@@ -34,16 +34,14 @@ module.exports.fetchCached = async function fetchCached({url, method, params}) {
     const cacheKey = getCacheKey({url, method, params})
 
     if (cache[cacheKey]) {
-        console.log('Cached')
+        console.log('Cached', url)
         return cache[cacheKey]
     }
-
-    console.log('Not Cached')
 
     const response = await axios[method](url, params)
 
     cache[cacheKey] = response.data
-    set('api', cache)
+    module.exports.set('api', cache)
 
     return response.data
 }
@@ -55,3 +53,4 @@ function getCacheKey({url, method, params}){
     }
     return cacheKey
 }
+

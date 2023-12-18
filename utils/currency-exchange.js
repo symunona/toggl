@@ -8,7 +8,7 @@ const currencies = ['eur', 'usd', 'gbp', 'huf']
 module.exports.getCurrencyExchangeRatesForDay = async function (date){
 
     const dateFormatted = moment(date).format('YYYYMMDD')
-    console.warn('getting day exchange rates', dateFormatted)
+
     // Date format is yyyymmdd
     const apiUrl = `https://www.backend-rates.bazg.admin.ch/api/xmldaily?d=${dateFormatted}&locale=en`;
 
@@ -28,7 +28,7 @@ module.exports.getCurrencyExchangeRatesForDay = async function (date){
     currencies.forEach((cur)=>{
         const currencyElement = currencyNodes.find((n)=>n.$.code === cur)
 
-        let price = currencyElement?.kurs[0]
+        let price = parseFloat(currencyElement?.kurs[0])
 
         // Sometimes it returns a larger number than 1
         // if the currency has a larger exchange rate e.g. 10 100 or 1000
