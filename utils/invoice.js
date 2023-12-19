@@ -1,7 +1,12 @@
-const { isDate } = require("underscore")
 const { get, set } = require("./cache")
-const { hr, printFormattedLine, tableLine, LINE_LENGTH } = require("./console-printer")
+const { hr, printFormattedLine, tableLine, LINE_LENGTH, formatDuration } = require("./console-printer")
 const moment = require('moment')
+const { writeFileSync, readFileSync, existsSync, mkdirSync } = require('fs')
+const _ = require('underscore')
+
+// _.templateSettings = {
+//     interpolate: /\{\{(.+?)\}\}/g
+// };
 
 module.exports.Invoice = class Invoice {
 
@@ -69,7 +74,7 @@ module.exports.getInvoiceByPeriod = function (year, invoiceSearch) {
     const invoices = module.exports.getInvoices(year)
     return invoices.find((invoice) => {
         // If it's a different client, it's not a match
-        if (invoiceSearch.clientKey !== invoice.clientKey){ return }
+        if (invoiceSearch.clientKey !== invoice.clientKey) { return }
         return isDateOverlap(invoice.from, invoice.to, invoiceSearch.from, invoiceSearch.to)
     })
 }
@@ -130,22 +135,10 @@ module.exports.consolePrinter = function (invoice) {
     ret += 'Date: ' + moment(invoice.date).format(INVOICE_DATE_FORMAT) + '\n'
     ret += 'Due Date: ' + moment(invoice.due).format(INVOICE_DATE_FORMAT) + '\n'
 
-    const fromFormatted = moment(invoice.from).format(INVOICE_DATE_FORMAT)
-    const toFormatted = moment(invoice.to).format(INVOICE_DATE_FORMAT)
-
     ret += 'Invoicing period: '
 
-    if (invoice.week) {
-        ret += `Week ${invoice.week}: between: ${fromFormatted} -> ${toFormatted}\n`
-    } else {
-        ret += `Between ${fromFormatted} -> ${toFormatted}\n`
-    }
-
-    if (invoice.currency !== 'chf') {
-        ret += `Currency exchange rate on ${moment(invoice.date).format(INVOICE_DATE_FORMAT)}`
-        ret += ` is 1 CHF = ${invoice.exchangeRate} ${invoice.currency}\n`
-    }
-    ret += '\n'
+    ret += getInvoicingPeriod(invoice) + '\n'
+    ret += getExchangeRateInfo(invoice) + '\n'
 
     ret += 'Client: \n'
 
@@ -203,4 +196,50 @@ module.exports.prettyPrintObject = function (object, colon = ':', join = '\n') {
     return Object.keys(object).map((key) => {
         return key + colon + ' ' + object[key]
     }).join(join)
+}
+
+function getInvoiceId(invoice) {
+    return invoice.year + '-' + String(invoice.id).padStart(5, 0)
+}
+
+function getInvoiceTitle(invoice) {
+    return getInvoiceId(invoice) + '-' + invoice.clientKey + '-' + moment(invoice.date).format('MM-DD')
+}
+
+function getInvoicingPeriod(invoice){
+    const fromFormatted = moment(invoice.from).format(INVOICE_DATE_FORMAT)
+    const toFormatted = moment(invoice.to).format(INVOICE_DATE_FORMAT)
+
+    if (invoice.week) {
+        return `Week ${invoice.week}: between: ${fromFormatted} -> ${toFormatted}`
+    } else {
+        return `Between ${fromFormatted} -> ${toFormatted}`
+    }
+}
+
+function getExchangeRateInfo(invoice){
+    if (invoice.currency !== 'chf') {
+        let ret = `Currency exchange rate on ${moment(invoice.date).format(INVOICE_DATE_FORMAT)}`
+        ret += ` is 1 CHF = ${invoice.exchangeRate} ${invoice.currency}\n`
+        return ret
+    } else {
+        return ''
+    }
+
+}
+
+module.exports.pdf = function (invoice) {
+    const out = _.template(readFileSync('./utils/template.xhtml', 'utf-8'))({
+        invoice,
+        exchangeRate: getExchangeRateInfo(invoice),
+        period: getInvoicingPeriod(invoice),
+        title: getInvoiceTitle(invoice),
+        m: moment,
+        f: formatDuration,
+        DF: INVOICE_DATE_FORMAT
+    })
+    console.warn(getInvoiceTitle(invoice))
+
+    if (!existsSync('invoices')){ mkdirSync('invoices') }
+    writeFileSync('invoices/' + getInvoiceTitle(invoice) + '.html', out)
 }

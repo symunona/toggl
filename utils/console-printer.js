@@ -73,5 +73,7 @@ function formatDuration(minutes) {
     return ('' + hours).padStart(2, 0) + ':' + ('' + duration.minutes()).padStart(2, 0)
 }
 
+module.exports.formatDuration = formatDuration
+
 
 

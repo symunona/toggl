@@ -29,7 +29,8 @@ const API_BASE = 'https://api.track.toggl.com/reports/api/v2/summary'
 const _ = require('underscore')
 const { getInvoiceAndToggleParams } = require('./utils/get-toggle-params')
 const { getCurrencyExchangeRatesForDay } = require('./utils/currency-exchange')
-const { Invoice, InvoiceItem, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod } = require('./utils/invoice')
+const { Invoice, InvoiceItem, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf } = require('./utils/invoice')
+const { formatDuration } = require('./utils/console-printer')
 
 const cmdLineParams = 'node toggl-pull.js '+ process.argv.slice(2).join(' ')
 
@@ -143,6 +144,7 @@ Promise.all([
         invoice.items.push(new InvoiceItem({
             description: entry.title.time_entry,
             durationMinutes: durationRoundMinutes,
+            durationFormatted: formatDuration(durationRoundMinutes),
             netPrice: itemPrice,
             currency: invoice.currency
         }))
@@ -167,6 +169,11 @@ Promise.all([
     console.log('\n\n\n')
 
     console.log(consolePrinter(invoice))
+    if ('pdf' in options){
+        pdf(invoice)
+    } else {
+
+    }
 
     console.log('\n\n\n')
 })
