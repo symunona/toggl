@@ -5,27 +5,43 @@
     <style>
         :root{
             --border: #777;
+            --width: 900px;
         }
 
-        body{ width: 900px; display: block; margin: 0 auto}
+        body{ width: var(--width); display: block; margin: 0 auto}
+
         table {padding: 20px 0 20px; border-spacing: 0;}
         .details{width: 100%}
-        footer table {width: 100%}
+
         .description{text-align: left;}
         .price{ text-align: right; width: 100px}
         .time{text-align: center; width: 100px}
+        .index{ text-align: center; width: 40px }
         tfoot{margin-top: 10px}
-        .details thead tr td {border-bottom: 1px solid var(--border)}
+        .details thead tr th {border-bottom: 1px solid var(--border)}
         .details tbody tr:last-child td {border-bottom: 1px solid var(--border)}
+        .details td { padding: 5px 2px}
         .chf.top td {border-top: 1px solid var(--border)}
+        .logo{ float: right; height: 128px; width: 128px }
+        .logo img {width: 100%;}
+        .sum{ background: #ddd }
+
+        footer { color: #999; position: absolute; bottom: 0px; width: var(--width) }
+        footer table {width: 100%}
+        footer table td:last-child{text-align: right;}
     </style>
 </head>
 <body>
     <header>
+        <% if (logo) { %>
+        <div class="logo">
+            <img src="<%= logo %>">
+        </div>
+        <% } %>
         <table>
             <tr>
                 <td>ID:</td>
-                <td><%= invoice.id %></td>
+                <td><strong><%= id %></strong></td>
             </tr>
             <tr>
                 <td>Date</td>
@@ -44,14 +60,29 @@
                 <td></td>
             </tr>
         </table>
-        <p>
-            <%= invoice.client %><br/>
-        </p>
+        <p>Client:</p>
+        <table>
+            <tr>
+                <td>Name:</td>
+                <td><%= invoice.client.company %></td>
+            </tr>
+            <tr>
+                <td>Address:</td>
+                <td><%= invoice.client.address %></td>
+            </tr>
+            <% if (invoice.client.tax) { %>
+            <tr>
+                <td>Tax:</td>
+                <td><%= invoice.client.tax %></td>
+            </tr>
+            <% } %>
+        </table>
     </header>
     <div>
         <table class="details">
             <thead>
                 <tr>
+                    <th class="index">#</th>
                     <th class="description">task description</th>
                     <th class="time">time<br/>hh:mm</th>
                     <th class="price">hourly<br/><%= invoice.currency %> / h</th>
@@ -59,8 +90,9 @@
                 </tr>
             </thead>
             <tbody>
-                <% _.each( invoice.items, (item) => { %>
+                <% _.each( invoice.items, (item, index) => { %>
                 <tr>
+                    <td class="index"><%= index + 1 %></td>
                     <td class="description"><%= item.description %></td>
                     <td class="time"><%= f(item.durationMinutes) %></td>
                     <td class="price"><%= invoice.hourlyPriceNet %></td>
@@ -71,21 +103,21 @@
 
             <tfoot>
                 <tr>
-                    <td> SUM NET in <%= invoice.currency %></td>
+                    <td colspan="2"> SUM NET in <%= invoice.currency %></td>
                     <td class="time"> <%= f(invoice.sumTimeMinutes) %></td>
                     <td colspan="2" class="price"><%= invoice.sumNet %> <%= invoice.currency %></td>
                 </tr>
                 <tr>
-                    <td colspan="3"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td>
-                    <td class="price"><strong><%= invoice.sumGross %> <%= invoice.currency %></strong></td>
+                    <td colspan="4" class="sum"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td>
+                    <td class="price sum"><strong><%= invoice.sumGross %> <%= invoice.currency %></strong></td>
                 </tr>
                 <% if (invoice.currency !== 'CHF') { %>
                 <tr class="chf top">
-                    <td colspan="3"> SUM GROSS in CHF</td>
+                    <td colspan="4"> SUM GROSS in CHF</td>
                     <td class="price"><%= invoice.sumNetChf %> CHF</td>
                 </tr>
                 <tr class="chf">
-                    <td colspan="3"> SUM GROSS in CHF incl <%= invoice.vat %>% VAT</td>
+                    <td colspan="4"> SUM GROSS in CHF incl <%= invoice.vat %>% VAT</td>
                     <td class="price"><strong><%= invoice.sumGrossChf %> CHF</strong></td>
                 </tr>
                 <% } %>

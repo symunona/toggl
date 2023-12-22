@@ -10,6 +10,7 @@
     "file-system": "^2.2.2",
     "follow-redirects": "^1.14.5",
     "moment": "^2.29.4",
+    "puppeteer": "^21.6.1",
     "underscore": "^1.13.6",
     "utils-extend": "^1.0.8",
     "xml2js": "^0.6.2"

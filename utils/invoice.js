@@ -3,6 +3,9 @@ const { hr, printFormattedLine, tableLine, LINE_LENGTH, formatDuration } = requi
 const moment = require('moment')
 const { writeFileSync, readFileSync, existsSync, mkdirSync } = require('fs')
 const _ = require('underscore')
+// const pdf = require('html-pdf');
+const puppeteer = require('puppeteer');
+
 
 // _.templateSettings = {
 //     interpolate: /\{\{(.+?)\}\}/g
@@ -228,18 +231,51 @@ function getExchangeRateInfo(invoice){
 
 }
 
-module.exports.pdf = function (invoice) {
-    const out = _.template(readFileSync('./utils/template.xhtml', 'utf-8'))({
+module.exports.pdf = async function (invoice, SETTINGS) {
+    const startDate = new Date
+
+    const html = _.template(readFileSync('./utils/template.xhtml', 'utf-8'))({
         invoice,
+        id: getInvoiceId(invoice),
         exchangeRate: getExchangeRateInfo(invoice),
         period: getInvoicingPeriod(invoice),
         title: getInvoiceTitle(invoice),
         m: moment,
         f: formatDuration,
-        DF: INVOICE_DATE_FORMAT
+        DF: INVOICE_DATE_FORMAT,
+        logo: SETTINGS.logo
     })
     console.warn(getInvoiceTitle(invoice))
 
+    const outputFileNameRoot = 'invoices/' + getInvoiceTitle(invoice);
+    const fullOutputFileName = __dirname + '/../' + outputFileNameRoot
     if (!existsSync('invoices')){ mkdirSync('invoices') }
-    writeFileSync('invoices/' + getInvoiceTitle(invoice) + '.html', out)
+
+    writeFileSync(outputFileNameRoot + '.html', html)
+
+    const exportOptions = {}
+
+    const browser = await puppeteer.launch();
+    // Open a new Page.
+    const page = await browser.newPage();
+    // Navigate to your HTML file.
+    await page.goto('file://' + fullOutputFileName + '.html', { waitUntil: 'networkidle0' });
+
+    const pdf = await page.pdf({ format: 'A4' });
+
+    require('fs').writeFileSync(outputFileNameRoot + '.pdf', pdf);
+
+    await browser.close();
+
+    console.warn('this took', new Date - startDate, 'ms')
+    // await new Promise((resolve, reject) => {
+    //     pdf.create(html).toFile(outputFileNameRoot + '.pdf', (err, res)=>{
+    //         if (err) {
+    //             return reject(err)
+    //         }
+    //         console.log(res); // { filename: '/app/businesscard.pdf' }
+    //         resolve(res)
+    //     })
+    // })
+    
 }

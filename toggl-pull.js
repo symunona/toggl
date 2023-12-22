@@ -170,7 +170,7 @@ Promise.all([
 
     console.log(consolePrinter(invoice))
     if ('pdf' in options){
-        pdf(invoice)
+        pdf(invoice, SETTINGS)
     } else {
 
     }
