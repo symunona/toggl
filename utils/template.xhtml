@@ -6,13 +6,16 @@
         :root{
             --border: #777;
             --width: 900px;
+            --page-padding: <%= settings.page_padding || '60px' %>;
         }
 
-        body{ width: var(--width); display: block; margin: 0 auto}
+        body{ width: var(--width); display: block; margin: 0 auto; padding: var(--page-padding) }
 
         table {padding: 20px 0 20px; border-spacing: 0;}
         .details{width: 100%}
 
+        .client th{text-align: left;}
+        .client tr td:first-child{ padding-left: 20px; }
         .description{text-align: left;}
         .price{ text-align: right; width: 100px}
         .time{text-align: center; width: 100px}
@@ -26,16 +29,16 @@
         .logo img {width: 100%;}
         .sum{ background: #ddd }
 
-        footer { color: #999; position: absolute; bottom: 0px; width: var(--width) }
+        footer { color: #aaa; position: absolute; bottom: calc(var(--page-padding) - 40px); width: var(--width) }
         footer table {width: 100%}
         footer table td:last-child{text-align: right;}
     </style>
 </head>
 <body>
     <header>
-        <% if (logo) { %>
+        <% if (settings.logo) { %>
         <div class="logo">
-            <img src="<%= logo %>">
+            <img src="<%= settings.logo %>">
         </div>
         <% } %>
         <table>
@@ -60,8 +63,10 @@
                 <td></td>
             </tr>
         </table>
-        <p>Client:</p>
-        <table>
+        <table class="client">
+            <tr>
+                <th colspan="2">Client</th>
+            </tr>
             <tr>
                 <td>Name:</td>
                 <td><%= invoice.client.company %></td>

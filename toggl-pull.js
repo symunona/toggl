@@ -117,7 +117,7 @@ const fetchCachedParams = {
 }
 
 Promise.all([
-    fetchCached(fetchCachedParams),
+    fetchCached(fetchCachedParams, options.f),
     getCurrencyExchangeRatesForDay(date)])
 .then(async ([togglProjectList, exchangeRates])=>{
 
@@ -164,6 +164,7 @@ Promise.all([
 
     if ('save' in options){
         save(invoice, 'overwrite' in options)
+        pdf(invoice, SETTINGS)
     }
 
     console.log('\n\n\n')
@@ -171,8 +172,6 @@ Promise.all([
     console.log(consolePrinter(invoice))
     if ('pdf' in options){
         pdf(invoice, SETTINGS)
-    } else {
-
     }
 
     console.log('\n\n\n')

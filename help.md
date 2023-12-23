@@ -3,6 +3,7 @@
 -w Number - default: 0: current week, 1 last week, etc.
 -m Number - month index 1-12
 -r Number - default: 0: multiplier for time that accounts for context switches in percent e.g. 20 is 120%
+-f - disable caching of time periods. Use this if you changed entries on toggl
 
 -c clientKey - generate invoice for client, set in the settings.json under root/clients
 

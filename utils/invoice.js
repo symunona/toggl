@@ -243,19 +243,18 @@ module.exports.pdf = async function (invoice, SETTINGS) {
         m: moment,
         f: formatDuration,
         DF: INVOICE_DATE_FORMAT,
-        logo: SETTINGS.logo
+        settings: SETTINGS
     })
-    console.warn(getInvoiceTitle(invoice))
 
     const outputFileNameRoot = 'invoices/' + getInvoiceTitle(invoice);
     const fullOutputFileName = __dirname + '/../' + outputFileNameRoot
     if (!existsSync('invoices')){ mkdirSync('invoices') }
 
+    console.log(`Exporting ${outputFileNameRoot}.pdf...`)
+
     writeFileSync(outputFileNameRoot + '.html', html)
 
-    const exportOptions = {}
-
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({headless: 'new'});
     // Open a new Page.
     const page = await browser.newPage();
     // Navigate to your HTML file.
@@ -265,17 +264,12 @@ module.exports.pdf = async function (invoice, SETTINGS) {
 
     require('fs').writeFileSync(outputFileNameRoot + '.pdf', pdf);
 
-    await browser.close();
+    try{
+        await browser.close();
+    }
+    finally{
+        // Ignore bug https://github.com/puppeteer/puppeteer/issues/11387
+    }
 
-    console.warn('this took', new Date - startDate, 'ms')
-    // await new Promise((resolve, reject) => {
-    //     pdf.create(html).toFile(outputFileNameRoot + '.pdf', (err, res)=>{
-    //         if (err) {
-    //             return reject(err)
-    //         }
-    //         console.log(res); // { filename: '/app/businesscard.pdf' }
-    //         resolve(res)
-    //     })
-    // })
-    
+    console.log('Finished in', new Date - startDate, 'ms')
 }

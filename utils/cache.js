@@ -29,11 +29,11 @@ module.exports.set = function set(key, value){
  * @param {Object} params
  * @returns
  */
-module.exports.fetchCached = async function fetchCached({url, method, params}) {
+module.exports.fetchCached = async function fetchCached({url, method, params}, disableCache) {
     method = method || 'get'
     const cacheKey = getCacheKey({url, method, params})
 
-    if (cache[cacheKey]) {
+    if (cache[cacheKey] && !disableCache) {
         console.log('Cached', url)
         return cache[cacheKey]
     }
