@@ -4,19 +4,29 @@
   "description": "get your toggl reports in plain text format",
   "main": "toggl-pull.js",
   "dependencies": {
+    "@babel/preset-typescript": "^7.23.3",
     "ajax-request": "^1.2.3",
     "axios": "^0.24.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-solid": "^1.8.6",
     "file-match": "^1.0.2",
     "file-system": "^2.2.2",
     "follow-redirects": "^1.14.5",
+    "http-server": "^14.1.1",
     "moment": "^2.29.4",
+    "parcel": "^2.10.3",
     "puppeteer": "^21.6.1",
+    "solid-devtools": "^0.29.2",
+    "solid-js": "^1.8.7",
+    "typescript": "^5.3.3",
     "underscore": "^1.13.6",
     "utils-extend": "^1.0.8",
+    "vite": "^4.5.1",
+    "vite-plugin-solid": "^2.8.0",
     "xml2js": "^0.6.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite"
   },
   "repository": {
     "type": "git",

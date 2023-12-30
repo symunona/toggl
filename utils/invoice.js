@@ -111,12 +111,16 @@ module.exports.save = function (invoice, overwrite) {
     const year = invoice.year
     const invoices = module.exports.getInvoices(year)
     if (!invoice.id) { throw new Error('You must have an ID set to save an invoice!') }
-    if (invoices.find((invoiceAlreadyInStore) => invoiceAlreadyInStore.id === invoice.id)) {
+    const invoiceAlready = invoices.find((invoiceAlreadyInStore) => invoiceAlreadyInStore.id === invoice.id)
+    if (invoiceAlready) {
         if (!overwrite) {
             throw new Error('An invoice with this ID already exists. To overwrite, use the -overwrite flag!')
         }
+        invoices = invoices.splice(invoices.indexOf(invoiceAlready), 1, invoice)
+    } else {
+        invoices.push(invoice)
     }
-    invoices.push(invoice)
+
     set(getCacheStoreIdForYear(year), invoices)
 }
 

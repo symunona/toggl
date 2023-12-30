@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoices</title>
+    <style>
+        :root{
+            --border: #777;
+            --width: 900px;
+            --page-padding: 60px;
+        }
+
+        body{ width: var(--width); display: block; margin: 0 auto; padding: var(--page-padding) }
+
+        table {padding: 20px 0 20px; border-spacing: 0;}
+        .details{width: 100%}
+
+        .client th{text-align: left;}
+        .client tr td:first-child{ padding-left: 20px; }
+        .description{text-align: left;}
+        .price{ text-align: right; width: 100px}
+        .time{text-align: center; width: 100px}
+        .index{ text-align: center; width: 40px }
+        tfoot{margin-top: 10px}
+        .details thead tr th {border-bottom: 1px solid var(--border)}
+        .details tbody tr:last-child td {border-bottom: 1px solid var(--border)}
+        .details td { padding: 5px 2px}
+        .chf.top td {border-top: 1px solid var(--border)}
+        .logo{ float: right; height: 128px; width: 128px }
+        .logo img {width: 100%;}
+        .sum{ background: #ddd }
+
+        footer { color: #aaa; position: absolute; bottom: calc(var(--page-padding) - 40px); width: var(--width) }
+        footer table {width: 100%}
+        footer table td:last-child{text-align: right;}
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/app.tsx"></script>
+</body>
+</html>

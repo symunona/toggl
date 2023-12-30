@@ -98,6 +98,8 @@ if (invoiceAlready){
     }
 
     invoice.id = invoiceAlready.id
+    invoice.date = invoiceAlready.date
+    invoice.due = invoiceAlready.due
 }
 
 const fetchCachedParams = {

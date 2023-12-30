@@ -32,8 +32,8 @@ module.exports.getInvoiceAndToggleParams = function (options, settings) {
     }
 
     // Multiplier - for accounting for context switches - given in percentages
-    if (options.r) {
-        multiplier = 1 + (options.r / 100)
+    if (options.r || settings.defaultMultiplier) {
+        multiplier = 1 + ((options.r || settings.defaultMultiplier) / 100)
         console.log(`Context Switch Multiplier: ${Math.round(multiplier * 100)}%`)
     }
     const vat = options.vat || settings.defaultVat
