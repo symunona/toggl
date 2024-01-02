@@ -1,3 +1,5 @@
+.parcel-cache
+dist
 node_modules/*
 settings.json
 cache.json

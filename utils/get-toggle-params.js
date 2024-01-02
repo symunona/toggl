@@ -26,8 +26,14 @@ module.exports.getInvoiceAndToggleParams = function (options, settings) {
         if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
             throw new Error('please provide a valid month number between 1-12!')
         }
-        from = moment().month(monthNumber - 1).startOf('month').startOf('day').format(API_DATE_FORMAT)
-        to = moment().month(monthNumber - 1).endOf('month').endOf('day').format(API_DATE_FORMAT)
+
+        let queryYear = moment().year()
+        if (monthNumber > moment().month() -1){
+            queryYear--
+        }
+
+        from = moment().year(queryYear).month(monthNumber - 1).startOf('month').startOf('day').format(API_DATE_FORMAT)
+        to = moment().year(queryYear).month(monthNumber - 1).endOf('month').endOf('day').format(API_DATE_FORMAT)
         week = null
     }
 

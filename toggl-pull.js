@@ -45,12 +45,14 @@ const clientKey = options.c;
 
 if (!clientKey){
     console.error('You need to specify a client -c param!')
+    process.exit()
 }
 
 const client = SETTINGS.clients ? SETTINGS.clients[clientKey] : undefined
 
 if (!client){
     console.error(`Client ${clientKey} not found. Did you specify it in settings.json:clients?`)
+    process.exit()
 }
 
 
@@ -126,7 +128,7 @@ Promise.all([
     const project = togglProjectList.data.find((project) => project.title.project === clientKey)
 
     if (!project){
-        console.error(`No entries found for client ${clientKey} during this period in toggl!`)
+        console.error(`No entries found for client ${clientKey} between ${from} and ${to} this period in toggl!`)
         return;
     }
 
