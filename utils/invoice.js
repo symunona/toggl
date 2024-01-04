@@ -49,8 +49,12 @@ module.exports.Invoice = class Invoice {
 
     options
 
+    id
+    fileNameRoot
+
     constructor(params) {
         Object.assign(this, params)
+        this.fileNameRoot = getInvoiceTitle(this)
     }
 }
 
@@ -116,7 +120,7 @@ module.exports.save = function (invoice, overwrite) {
         if (!overwrite) {
             throw new Error('An invoice with this ID already exists. To overwrite, use the -overwrite flag!')
         }
-        invoices = invoices.splice(invoices.indexOf(invoiceAlready), 1, invoice)
+        invoices.splice(invoices.indexOf(invoiceAlready), 1, invoice)
     } else {
         invoices.push(invoice)
     }
@@ -209,8 +213,15 @@ function getInvoiceId(invoice) {
     return invoice.year + '-' + String(invoice.id).padStart(5, 0)
 }
 
+
 function getInvoiceTitle(invoice) {
-    return getInvoiceId(invoice) + '-' + invoice.clientKey + '-' + moment(invoice.date).format('MM-DD')
+    let timeIndicator = ''
+    if (invoice.week){
+        timeIndicator = '-w-' + invoice.week
+    } else {
+        timeIndicator = '-m-' + String(moment(invoice.from).month() + 1).padStart(2, '0')
+    }
+    return getInvoiceId(invoice) + '-' + invoice.clientKey + timeIndicator + '-' + moment(invoice.date).format('MM-DD')
 }
 
 function getInvoicingPeriod(invoice){
@@ -243,7 +254,7 @@ module.exports.pdf = async function (invoice, SETTINGS) {
         id: getInvoiceId(invoice),
         exchangeRate: getExchangeRateInfo(invoice),
         period: getInvoicingPeriod(invoice),
-        title: getInvoiceTitle(invoice),
+        title: invoice.fileNameRoot,
         m: moment,
         f: formatDuration,
         DF: INVOICE_DATE_FORMAT,
@@ -277,3 +288,6 @@ module.exports.pdf = async function (invoice, SETTINGS) {
 
     console.log('Finished in', new Date - startDate, 'ms')
 }
+
+module.exports.getInvoiceTitle =  getInvoiceTitle
+

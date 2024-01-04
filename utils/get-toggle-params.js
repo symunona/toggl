@@ -19,7 +19,7 @@ module.exports.getInvoiceAndToggleParams = function (options, settings) {
         weekOffset = parseInt(options.w)
         from = moment().day((-7 * weekOffset) - 1).format(API_DATE_FORMAT)
         to = moment().day((-7 * weekOffset) + 5).format(API_DATE_FORMAT)
-        week = moment(from).isoWeek() + 1
+        week = moment(from).isoWeek()
     } else if ('m' in options) {
         // All activities in a month.
         const monthNumber = options.m

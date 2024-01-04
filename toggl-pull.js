@@ -29,7 +29,7 @@ const API_BASE = 'https://api.track.toggl.com/reports/api/v2/summary'
 const _ = require('underscore')
 const { getInvoiceAndToggleParams } = require('./utils/get-toggle-params')
 const { getCurrencyExchangeRatesForDay } = require('./utils/currency-exchange')
-const { Invoice, InvoiceItem, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf } = require('./utils/invoice')
+const { Invoice, InvoiceItem, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf, getInvoiceTitle } = require('./utils/invoice')
 const { formatDuration } = require('./utils/console-printer')
 
 const cmdLineParams = 'node toggl-pull.js '+ process.argv.slice(2).join(' ')
@@ -102,6 +102,7 @@ if (invoiceAlready){
     invoice.id = invoiceAlready.id
     invoice.date = invoiceAlready.date
     invoice.due = invoiceAlready.due
+    invoice.fileNameRoot = getInvoiceTitle(invoiceAlready)
 }
 
 const fetchCachedParams = {

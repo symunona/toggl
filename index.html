@@ -5,7 +5,7 @@
     <style>
         :root{
             --border: #777;
-            --width: 900px;
+            --width: 1000px;
             --page-padding: 60px;
         }
 
@@ -29,9 +29,14 @@
         .logo img {width: 100%;}
         .sum{ background: #ddd }
 
+        tr > td { cursor: pointer }
+        tr:hover > td { background: #e3e8f4; }
+        tr.current td {background: #d8e1f7;}
+
         footer { color: #aaa; position: absolute; bottom: calc(var(--page-padding) - 40px); width: var(--width) }
         footer table {width: 100%}
         footer table td:last-child{text-align: right;}
+        iframe{ width: 100%; height: 1000px; border: 1px solid #eee; overflow: hidden; }
     </style>
 </head>
 <body>
