@@ -1,7 +1,7 @@
 const { get, set } = require("./cache")
 const { hr, printFormattedLine, tableLine, LINE_LENGTH, formatDuration } = require("./console-printer")
 const moment = require('moment')
-const { writeFileSync, readFileSync, existsSync, mkdirSync } = require('fs')
+const { writeFileSync, readFileSync, existsSync, mkdirSync, unlink, unlinkSync } = require('fs')
 const _ = require('underscore')
 // const pdf = require('html-pdf');
 const puppeteer = require('puppeteer');
@@ -243,7 +243,6 @@ function getExchangeRateInfo(invoice){
     } else {
         return ''
     }
-
 }
 
 module.exports.pdf = async function (invoice, SETTINGS) {
@@ -278,6 +277,9 @@ module.exports.pdf = async function (invoice, SETTINGS) {
     const pdf = await page.pdf({ format: 'A4' });
 
     require('fs').writeFileSync(outputFileNameRoot + '.pdf', pdf);
+
+    // We do not need the HTML file.
+    unlinkSync(outputFileNameRoot + '.html')
 
     try{
         await browser.close();
