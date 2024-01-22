@@ -3,6 +3,7 @@
 import { Show, createEffect, createSignal, onMount } from "solid-js";
 import { render } from "solid-js/web"
 import { DateFormatter } from "./DateFormatter";
+import { CurrencyFormatter } from "./CurrencyFormatter";
 
 
 // function InvoiceList() {
@@ -21,6 +22,8 @@ import { DateFormatter } from "./DateFormatter";
 //     </div>;
 // }
 
+const monthNames = ["January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November", "December"];
 
 
 type Invoice = {
@@ -101,7 +104,7 @@ const App = () => {
                         <th>From-To</th>
                         <th>details</th>
                         <th>fn</th>
-                        <th class="price">Net</th>
+                        <th class="price">Net (CHF)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,7 +116,7 @@ const App = () => {
             </table>
             <hr/>
             <Show when={Boolean(currentInvoice())}>
-                <iframe ref={iframeRef} src={`invoices/${currentInvoice().fileNameRoot}.html`} onLoad={()=>{
+                <iframe ref={iframeRef} src={`invoices/${currentInvoice().fileNameRoot}.pdf`} onLoad={()=>{
                     console.warn('what is this?', this, iframeRef)
                     const doc = iframeRef.contentDocument as Document
                     doc.body.style.padding = '50px'
@@ -128,27 +131,29 @@ const App = () => {
 };
 
 function InvoiceList({list, currentInvoice, setCurrentInvoice}) {
-    let lastSum
+    let lastSum = 0
     return <>
         {list().map((item, index) => {
             if (index === 0) lastSum = 0
             const prev = list()[index - 1]
+            lastSum += item.sumNetChf
             if (index > 0 && new Date(item.date).getMonth() != new Date(prev.date).getMonth()){
                 const ret = <>
                     <tr><td colSpan="8"><strong>{lastSum}</strong></td></tr>
                     <tr><td colSpan="8">{index.item.date.getMonth()}</td></tr>
                     <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice}/>
                     </>
-                lastSum = 0
                 return ret
             }
             else if (index === list().length - 1){
                 return <>
                 <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice}/>
-                <tr><td colSpan="8" class="price"><strong>{lastSum}</strong></td></tr>
+                <tr class="monthly-sum">
+                    <td colSpan="7"><strong>{monthNames[new Date(item.date).getMonth()]}</strong></td>
+                    <td class="price"><strong>{<CurrencyFormatter value={lastSum} currency='chf'/>}</strong></td>
+                </tr>
                 </>
             }
-            lastSum += item.sumNet
             return <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice}/>
         })}
     </>
@@ -169,7 +174,7 @@ function InvoiceItemRow({item, currentInvoice, setCurrentInvoice}){
                 <DateFormatter date={item.to} format="MM-DD"/> </td>
             <td>{item.fileNameRoot}</td>
             <td></td>
-            <td class="price">{item.sumNet}</td>
+            <td class="price">{item.sumNetChf}</td>
         </tr>)
 }
 

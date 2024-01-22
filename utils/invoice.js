@@ -278,11 +278,12 @@ module.exports.pdf = async function (invoice, SETTINGS) {
 
     require('fs').writeFileSync(outputFileNameRoot + '.pdf', pdf);
 
-    // We do not need the HTML file.
-    unlinkSync(outputFileNameRoot + '.html')
-
     try{
         await browser.close();
+
+        // We do not need the HTML file.
+        unlinkSync(outputFileNameRoot + '.html')
+
     }
     finally{
         // Ignore bug https://github.com/puppeteer/puppeteer/issues/11387
