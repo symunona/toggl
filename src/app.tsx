@@ -139,8 +139,10 @@ function InvoiceList({list, currentInvoice, setCurrentInvoice}) {
             lastSum += item.sumNetChf
             if (index > 0 && new Date(item.date).getMonth() != new Date(prev.date).getMonth()){
                 const ret = <>
-                    <tr><td colSpan="8"><strong>{lastSum}</strong></td></tr>
-                    <tr><td colSpan="8">{index.item.date.getMonth()}</td></tr>
+                    <tr class="monthly-sum">
+                        <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
+                        <td class="price"><strong>{<CurrencyFormatter value={lastSum} currency='chf'/>}</strong></td>
+                    </tr>
                     <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice}/>
                     </>
                 return ret
@@ -149,7 +151,7 @@ function InvoiceList({list, currentInvoice, setCurrentInvoice}) {
                 return <>
                 <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice}/>
                 <tr class="monthly-sum">
-                    <td colSpan="7"><strong>{monthNames[new Date(item.date).getMonth()]}</strong></td>
+                    <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
                     <td class="price"><strong>{<CurrencyFormatter value={lastSum} currency='chf'/>}</strong></td>
                 </tr>
                 </>
