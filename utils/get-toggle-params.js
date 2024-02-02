@@ -31,6 +31,9 @@ module.exports.getInvoiceAndToggleParams = function (options, settings) {
         if (monthNumber > moment().month() -1){
             queryYear--
         }
+        if (options.y){
+            queryYear = options.y
+        }
 
         from = moment().year(queryYear).month(monthNumber - 1).startOf('month').startOf('day').format(API_DATE_FORMAT)
         to = moment().year(queryYear).month(monthNumber - 1).endOf('month').endOf('day').format(API_DATE_FORMAT)
