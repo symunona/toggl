@@ -125,46 +125,56 @@ const App = () => {
 };
 
 function InvoiceList({ list, currentInvoice, setCurrentInvoice }) {
-    let lastMonthSum = 0
-    let yearSumNet = 0
-    let yearSumGross = 0
+    let lastMonthSumChf = 0
+    let yearSumNetChf = 0
+    let yearSumGrossChf = 0
+    let lastMonthSumUsd = 0
+    let yearSumNetUsd = 0
+    let yearSumGrossUsd = 0
     return <>
-        {list().map((item, index) => {
-            if (index === 0) { lastMonthSum = 0; yearSumNet = 0; yearSumGross = 0 }
+        {list().map((item: Invoice, index) => {
+            if (index === 0) {
+                lastMonthSumChf = 0; yearSumNetChf = 0; yearSumGrossChf = 0;
+                lastMonthSumUsd = 0; yearSumNetUsd = 0; yearSumGrossUsd = 0;
+            }
             const prev = list()[index - 1]
-            yearSumNet += item.sumNetChf
-            yearSumGross += item.sumGrossChf
+            yearSumNetChf += item.sumNetChf
+            yearSumGrossChf += item.sumGrossChf
+            if (item.currency === 'usd') {
+                yearSumGrossUsd += item.sumGross
+                yearSumNetUsd += item.sumNet
+            }
             // Last month sum line.
             if (index > 0 && new Date(item.date).getMonth() != new Date(prev.date).getMonth()) {
                 const ret = <>
                     <tr class="monthly-sum">
                         <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={lastMonthSum} currency='chf' />}</strong></td>
+                        <td class="price"><strong>{<CurrencyFormatter value={lastMonthSumChf} currency='chf' />}</strong></td>
                     </tr>
 
                     <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
                 </>
-                lastMonthSum = item.sumNetChf
+                lastMonthSumChf = item.sumNetChf
                 return ret
             }
             // Last line
             else if (index === list().length - 1) {
-                lastMonthSum += item.sumNetChf
+                lastMonthSumChf += item.sumNetChf
                 return <>
                     <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
                     <tr class="monthly-sum">
                         <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={lastMonthSum} currency='chf' />}</strong></td>
+                        <td class="price"><strong>{<CurrencyFormatter value={lastMonthSumChf} currency='chf' />}</strong></td>
                     </tr>
                     <tr class="monthly-sum">
                         <td colSpan="6"><strong>{new Date(prev.date).getFullYear()} Net/Gross</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={yearSumNet} currency='chf' />}</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={yearSumGross} currency='chf' />}</strong></td>
+                        <td class="price"><strong>{<CurrencyFormatter value={yearSumNetChf} currency='chf' />}</strong></td>
+                        <td class="price"><strong>{<CurrencyFormatter value={yearSumGrossChf} currency='chf' />}</strong></td>
                     </tr>
                 </>
             }
             // Default line
-            lastMonthSum += item.sumNetChf
+            lastMonthSumChf += item.sumNetChf
             return <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
         })}
     </>
