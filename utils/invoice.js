@@ -268,7 +268,10 @@ module.exports.pdf = async function (invoice, SETTINGS) {
 
     writeFileSync(outputFileNameRoot + '.html', html)
 
-    const browser = await puppeteer.launch({headless: 'new'});
+    const browser = await puppeteer.launch({
+        headless: 'new',
+        executablePath: '/snap/bin/chromium',
+    });
     // Open a new Page.
     const page = await browser.newPage();
     // Navigate to your HTML file.
