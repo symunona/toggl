@@ -1,6 +1,6 @@
 
 // import { createSignal, onMount } from "solid-js";
-import { Show, createEffect, createSignal, onMount } from "solid-js";
+import { Show, createMemo, createSignal, onMount } from "solid-js";
 import { render } from "solid-js/web"
 import { DateFormatter } from "./DateFormatter";
 import { CurrencyFormatter } from "./CurrencyFormatter";
@@ -74,7 +74,6 @@ const App = () => {
 
     let iframeRef;
 
-
     onMount(() => {
         getInvoicesOfYear(year());
     });
@@ -106,6 +105,7 @@ const App = () => {
                     <InvoiceList list={list}
                         currentInvoice={currentInvoice}
                         setCurrentInvoice={setCurrentInvoice}
+                        year = {year}
                     ></InvoiceList>
                 </tbody>
             </table>
@@ -124,15 +124,15 @@ const App = () => {
     );
 };
 
-function InvoiceList({ list, currentInvoice, setCurrentInvoice }) {
-    let lastMonthSumChf = 0
-    let yearSumNetChf = 0
-    let yearSumGrossChf = 0
-    let lastMonthSumUsd = 0
-    let yearSumNetUsd = 0
-    let yearSumGrossUsd = 0
-    return <>
-        {list().map((item: Invoice, index) => {
+function InvoiceList({ list, currentInvoice, setCurrentInvoice, year }) {
+    let invoiceListDom = createMemo(()=>{
+        let lastMonthSumChf = 0
+        let yearSumNetChf = 0
+        let yearSumGrossChf = 0
+        let lastMonthSumUsd = 0
+        let yearSumNetUsd = 0
+        let yearSumGrossUsd = 0
+        let listDOM = list().map((item: Invoice, index) => {
             if (index === 0) {
                 lastMonthSumChf = 0; yearSumNetChf = 0; yearSumGrossChf = 0;
                 lastMonthSumUsd = 0; yearSumNetUsd = 0; yearSumGrossUsd = 0;
@@ -151,32 +151,32 @@ function InvoiceList({ list, currentInvoice, setCurrentInvoice }) {
                         <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
                         <td class="price"><strong>{<CurrencyFormatter value={lastMonthSumChf} currency='chf' />}</strong></td>
                     </tr>
-
+    
                     <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
                 </>
                 lastMonthSumChf = item.sumNetChf
                 return ret
             }
-            // Last line
-            else if (index === list().length - 1) {
-                lastMonthSumChf += item.sumNetChf
-                return <>
-                    <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
-                    <tr class="monthly-sum">
-                        <td colSpan="7"><strong>{monthNames[new Date(prev.date).getMonth()]}</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={lastMonthSumChf} currency='chf' />}</strong></td>
-                    </tr>
-                    <tr class="monthly-sum">
-                        <td colSpan="6"><strong>{new Date(prev.date).getFullYear()} Net/Gross</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={yearSumNetChf} currency='chf' />}</strong></td>
-                        <td class="price"><strong>{<CurrencyFormatter value={yearSumGrossChf} currency='chf' />}</strong></td>
-                    </tr>
-                </>
-            }
+            
             // Default line
             lastMonthSumChf += item.sumNetChf
             return <InvoiceItemRow item={item} currentInvoice={currentInvoice} setCurrentInvoice={setCurrentInvoice} />
-        })}
+        })
+
+
+        return <>
+            {listDOM}
+            <>
+                <tr class="monthly-sum">
+                    <td colSpan="6"><strong>{year()} Net/Gross</strong></td>
+                    <td class="price"><strong>{<CurrencyFormatter value={yearSumNetChf} currency='chf' />}</strong></td>
+                    <td class="price"><strong>{<CurrencyFormatter value={yearSumGrossChf} currency='chf' />}</strong></td>
+                </tr>
+            </>
+        </>
+    })
+    return <>
+        {invoiceListDom()}
     </>
 }
 

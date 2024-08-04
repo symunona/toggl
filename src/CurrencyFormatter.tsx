@@ -30,7 +30,7 @@ const formatCurrency = (currency: string, value: number): string => {
 
 export const CurrencyFormatter: Component<{currency: string, value: number}> = (props) => {
     return (
-        <Show when={props.value} fallback={<span>Invalid date</span>}>
+        <Show when={props.value || props.value === 0} fallback={<span>Invalid Value - {props.value}</span>}>
             <span>{formatCurrency(props.currency, props.value)}</span>
         </Show>
     );

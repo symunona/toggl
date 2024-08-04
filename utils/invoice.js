@@ -270,7 +270,8 @@ module.exports.pdf = async function (invoice, SETTINGS) {
 
     const browser = await puppeteer.launch({
         headless: 'new',
-        executablePath: '/snap/bin/chromium',
+        // executablePath: '/snap/bin/chromium',
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     // Open a new Page.
     const page = await browser.newPage();

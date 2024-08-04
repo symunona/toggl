@@ -22,6 +22,16 @@
                 "<node_internals>/**"
             ],
             "type": "pwa-node"
+        },
+        {
+            "name": "Toggl-recent-export-test",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "6", "-y", "2024", "-c", "RR40", "-f" ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
         }
     ]
 }
