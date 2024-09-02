@@ -21,6 +21,7 @@ module.exports.LINE_LENGTH = LINE_LENGTH
 module.exports.tableLine = function(table) {
     return table.map((field) => {
         let text = field.text === undefined ? '' : String(field.text)
+        // if (isNaN(field.text)) { text = '' }
         if (text.length > field.width) {
             // Good enough for now
             text = text.substring(0, field.width - 3) + '...'
@@ -50,7 +51,7 @@ module.exports.hr = function hr(text) {
     return out + '\n'
 }
 
-module.exports.printFormattedLine = function (text, duration, unitPrice, price) {
+module.exports.printFormattedLineHourly = function (text, duration, unitPrice, price) {
 
     const lineTextWidth = LINE_LENGTH - WIDTHS.time - WIDTHS.unitPrice - WIDTHS.price - (PAD * 3)
 

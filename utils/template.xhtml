@@ -90,7 +90,11 @@
                     <th class="index">#</th>
                     <th class="description">task description</th>
                     <th class="time">time<br/>hh:mm</th>
-                    <th class="price">hourly<br/><%= invoice.currency %> / h</th>
+                    <th class="price">hourly<br/>
+                        <% if (invoice.type !== 'fixed') { %>
+                            <%= invoice.currency %> / h
+                        <% } %>            
+                    </th>
                     <th class="price">price<br/><%= invoice.currency %></th>
                 </tr>
             </thead>
@@ -100,8 +104,16 @@
                     <td class="index"><%= index + 1 %></td>
                     <td class="description"><%= item.description %></td>
                     <td class="time"><%= f(item.durationMinutes) %></td>
-                    <td class="price"><%= invoice.hourlyPriceNet %></td>
-                    <td class="price"><%= item.netPrice %></td>
+                    <td class="price">
+                        <% if (invoice.type !== 'fixed') { %>
+                            <%= invoice.hourlyPriceNet %>
+                        <% } %>
+                    </td>
+                    <td class="price">
+                        <% if (invoice.type !== 'fixed') { %>
+                            <%= item.netPrice %>
+                        <% } %>
+                    </td>
                 </tr>
                 <% }) %>
             </tbody>

@@ -1,5 +1,5 @@
 const { get, set } = require("./cache")
-const { hr, printFormattedLine, tableLine, LINE_LENGTH, formatDuration } = require("./console-printer")
+const { hr, printFormattedLineHourly: printFormattedLineHourly, tableLine, LINE_LENGTH, formatDuration } = require("./console-printer")
 const moment = require('moment')
 const { writeFileSync, readFileSync, existsSync, mkdirSync, unlink, unlinkSync } = require('fs')
 const _ = require('underscore')
@@ -164,34 +164,26 @@ module.exports.consolePrinter = function (invoice) {
     })
 
     ret += hr()
-
-
-
     ret += '\n\n'
 
-    ret += printFormattedLine('task description', 'time', 'hourly', 'price')
-    ret += printFormattedLine('', 'hh:mm', invoice.currency + ' / h', invoice.currency)
+    if (invoice.client.type === 'fixed'){
+        ret += doFixedTable(invoice)
+    } else { // hourly
+        ret += doHourlyTable(invoice)
+    }
 
     ret += hr()
 
-    const hourlyPriceWithCurrency = invoice.hourlyPriceNet + ' ' + invoice.currency
-
-    invoice.items.forEach((item) => {
-        ret += printFormattedLine(item.description, item.durationMinutes, hourlyPriceWithCurrency, item.netPrice + ' ' + invoice.currency)
-    })
-
-    ret += hr()
-
-    ret += printFormattedLine('SUM NET in ' + invoice.currency, invoice.sumTimeMinutes, '', invoice.sumNet + ' ' + invoice.currency)
-    ret += printFormattedLine('SUM GROSS in ' + invoice.currency + ` incl. ${invoice.vat}% VAT`, '', '', invoice.sumGross + ' ' + invoice.currency)
+    ret += printFormattedLineHourly('SUM NET in ' + invoice.currency, invoice.sumTimeMinutes, '', invoice.sumNet + ' ' + invoice.currency)
+    ret += printFormattedLineHourly('SUM GROSS in ' + invoice.currency + ` incl. ${invoice.vat}% VAT`, '', '', invoice.sumGross + ' ' + invoice.currency)
 
     ret += hr()
 
     if (invoice.currency !== 'CHF') {
-        ret += printFormattedLine('SUM NET in CHF', '', '', invoice.sumNetChf + ' CHF')
+        ret += printFormattedLineHourly('SUM NET in CHF', '', '', invoice.sumNetChf + ' CHF')
 
         ret += hr()
-        ret += printFormattedLine(`SUM GROSS in CHF incl. ${invoice.vat}% VAT`, '', '', invoice.sumGrossChf + ' CHF')
+        ret += printFormattedLineHourly(`SUM GROSS in CHF incl. ${invoice.vat}% VAT`, '', '', invoice.sumGrossChf + ' CHF')
         ret += hr()
     }
 
@@ -200,6 +192,41 @@ module.exports.consolePrinter = function (invoice) {
     ret += module.exports.prettyPrintObject(invoice.company) + '\n\n'
 
     ret += hr()
+    
+    return ret
+}
+
+function doHourlyTable(invoice){
+    
+    let ret = ''
+    ret += printFormattedLineHourly('task description', 'time', 'hourly', 'price')
+    ret += printFormattedLineHourly('', 'hh:mm', invoice.currency + ' / h', invoice.currency)
+
+    ret += hr()
+
+    const hourlyPriceWithCurrency = invoice.hourlyPriceNet + ' ' + invoice.currency
+
+    invoice.items.forEach((item) => {
+        ret += printFormattedLineHourly(item.description, item.durationMinutes, hourlyPriceWithCurrency, item.netPrice + ' ' + invoice.currency)
+    })
+
+    return ret
+}
+
+
+function doFixedTable(invoice){
+    
+    let ret = ''
+    ret += printFormattedLineHourly('task description', 'time')
+    ret += printFormattedLineHourly('', 'hh:mm')
+
+    ret += hr()
+
+    invoice.items.forEach((item) => {
+        ret += printFormattedLineHourly(item.description, item.durationMinutes)
+    })
+
+
     return ret
 }
 

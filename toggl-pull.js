@@ -29,8 +29,9 @@ const API_BASE = 'https://api.track.toggl.com/reports/api/v2/summary'
 const _ = require('underscore')
 const { getInvoiceAndToggleParams } = require('./utils/get-toggle-params')
 const { getCurrencyExchangeRatesForDay } = require('./utils/currency-exchange')
-const { Invoice, InvoiceItem, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf, getInvoiceTitle } = require('./utils/invoice')
-const { formatDuration } = require('./utils/console-printer')
+const { Invoice, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf, getInvoiceTitle } = require('./utils/invoice')
+
+const { caluculateSums, round, netValue } = require('./utils/price-calculator')
 
 const cmdLineParams = 'node toggl-pull.js '+ process.argv.slice(2).join(' ')
 
@@ -55,7 +56,6 @@ if (!client){
     process.exit()
 }
 
-
 console.log(`---<LOG retirever>---\n`)
 console.log(cmdLineParams)
 console.log('')
@@ -77,8 +77,9 @@ const hourlyPriceNet = client.hourlyPriceNet || round(netValue(client.hourlyPric
 
 const invoice = new Invoice({
     from, to, week, vat, date, client, clientKey,
-    due, year,
+    due, year, type: client.type,
     hourlyPriceNet,
+    multiplier,
     currency: client.currency,
     company: SETTINGS.company,
     options: options,
@@ -133,39 +134,7 @@ Promise.all([
         return;
     }
 
-    let sumTimeMinutes = 0
-    let sumNetPrice = 0
-
-
-    _.sortBy(project.items, 'time').reverse().map((entry) => {
-
-        const durationSeconds = Math.round(entry.time * multiplier / 1000)
-        const durationRoundMinutes = Math.round(durationSeconds / 60)
-        sumTimeMinutes += durationRoundMinutes
-        const itemPrice = round(invoice.hourlyPriceNet * durationRoundMinutes / 60, 2)
-
-        sumNetPrice += itemPrice
-
-        invoice.items.push(new InvoiceItem({
-            description: entry.title.time_entry,
-            durationMinutes: durationRoundMinutes,
-            durationFormatted: formatDuration(durationRoundMinutes),
-            netPrice: itemPrice,
-            currency: invoice.currency
-        }))
-    })
-
-    invoice.sumTimeMinutes = sumTimeMinutes
-
-    invoice.sumNet = round(sumNetPrice, 2)
-    invoice.sumGross = round(grossValue(sumNetPrice, vat), 2)
-
-    if (invoice.currency !== 'chf'){
-        invoice.exchangeRate = exchangeRates[invoice.currency]
-
-        invoice.sumNetChf = round(inChf(sumNetPrice, invoice.currency, exchangeRates), 2)
-        invoice.sumGrossChf = round(grossValue(invoice.sumNetChf, invoice.vat), 2)
-    }
+    caluculateSums(project, invoice, client, exchangeRates)
 
     if ('save' in options){
         save(invoice, 'overwrite' in options)
@@ -182,23 +151,3 @@ Promise.all([
     console.log('\n\n\n')
 })
 
-/**
- * @param {number} value
- * @param {number} vat 0-100 (%)
- * @returns {number} price * (100+vat)%
- */
-function grossValue(value, vat){
-    return value * (1 + (vat / 100))
-}
-
-function netValue(value, vat){
-    return value / (1 + (vat / 100))
-}
-
-function inChf(price, currency, currencyMap){
-    return price * currencyMap[currency]
-}
-
-function round(price, zeros){
-    return Math.round(price * Math.pow(10, zeros)) / Math.pow(10, zeros)
-}
