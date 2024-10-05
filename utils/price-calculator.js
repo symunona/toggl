@@ -61,7 +61,7 @@ function calculateHourly(project, invoice, client, exchangeRates){
     
     _.sortBy(project.items, 'time').reverse().map((entry) => {
 
-        const durationSeconds = Math.round(entry.time * multiplier / 1000)
+        const durationSeconds = Math.round(entry.time * invoice.multiplier / 1000)
         const durationRoundMinutes = Math.round(durationSeconds / 60)
         sumTimeMinutes += durationRoundMinutes
         const itemPrice = round(invoice.hourlyPriceNet * durationRoundMinutes / 60, 2)
@@ -80,7 +80,7 @@ function calculateHourly(project, invoice, client, exchangeRates){
     invoice.sumTimeMinutes = sumTimeMinutes
 
     invoice.sumNet = round(sumNetPrice, 2)
-    invoice.sumGross = round(grossValue(sumNetPrice, vat), 2)
+    invoice.sumGross = round(grossValue(sumNetPrice, invoice.vat), 2)
 
     if (invoice.currency !== 'chf'){
         invoice.exchangeRate = exchangeRates[invoice.currency]
