@@ -28,7 +28,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "prod": "vite build && cd dist && ln -s ../cache/ cache && cd .."
+    "prod": "vite build && cd dist && ln -s ../cache/ cache && ln -s ../invoices/ invoices && cd .."
   },
   "repository": {
     "type": "git",

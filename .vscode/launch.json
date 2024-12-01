@@ -32,6 +32,16 @@
                 "<node_internals>/**"
             ],
             "type": "pwa-node"
+        },
+        {
+            "name": "RRF46k",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "11", "-y", "2024", "-c", "RRF46k"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
         }
     ]
 }

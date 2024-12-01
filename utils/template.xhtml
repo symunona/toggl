@@ -116,6 +116,23 @@
                     </td>
                 </tr>
                 <% }) %>
+                
+                <% _.each( invoice.client.extraItems, (item, index) => { %>
+                    <tr>
+                        <td class="index"><%= invoice.items.length + index + 1 %></td>
+                        <td class="description"><%= item.description %></td>
+                        <td class="time"><%= item.durationMinutes && f(item.durationMinutes) %></td>
+                        <td class="price">
+                            <% if (invoice.type !== 'fixed') { %>
+                                <%= invoice.hourlyPriceNet %>
+                            <% } %>
+                        </td>
+                        <td class="price">
+                            <%= item.netPrice %>
+                        </td>
+                    </tr>
+                <% }) %>
+                    
             </tbody>
 
             <tfoot>

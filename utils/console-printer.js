@@ -1,7 +1,7 @@
 const moment = require('moment')
 
 const WIDTHS = {
-    time: 5,
+    time: 6,
     unitPrice: 9,
     price: 12
 }

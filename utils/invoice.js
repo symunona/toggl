@@ -172,8 +172,15 @@ module.exports.consolePrinter = function (invoice) {
         ret += doHourlyTable(invoice)
     }
 
-    ret += hr()
+    if (invoice.client.extraItems && invoice.client.extraItems.length){
+        for (let i = 0; i < invoice.client.extraItems.length; i++){
+            const item = invoice.client.extraItems[i]
+            ret += printFormattedLineHourly(item.description, item.durationMinutes, undefined, item.netPrice + ' ' + invoice.currency)
+        }
+    }
 
+    ret += hr()
+    
     ret += printFormattedLineHourly('SUM NET in ' + invoice.currency, invoice.sumTimeMinutes, '', invoice.sumNet + ' ' + invoice.currency)
     ret += printFormattedLineHourly('SUM GROSS in ' + invoice.currency + ` incl. ${invoice.vat}% VAT`, '', '', invoice.sumGross + ' ' + invoice.currency)
 
@@ -225,7 +232,6 @@ function doFixedTable(invoice){
     invoice.items.forEach((item) => {
         ret += printFormattedLineHourly(item.description, item.durationMinutes)
     })
-
 
     return ret
 }
