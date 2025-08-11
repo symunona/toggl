@@ -93,7 +93,7 @@
                     <th class="price">hourly<br/>
                         <% if (invoice.type !== 'fixed') { %>
                             <%= invoice.currency %> / h
-                        <% } %>            
+                        <% } %>
                     </th>
                     <th class="price">price<br/><%= invoice.currency %></th>
                 </tr>
@@ -116,7 +116,7 @@
                     </td>
                 </tr>
                 <% }) %>
-                
+
                 <% _.each( invoice.client.extraItems, (item, index) => { %>
                     <tr>
                         <td class="index"><%= invoice.items.length + index + 1 %></td>
@@ -132,26 +132,29 @@
                         </td>
                     </tr>
                 <% }) %>
-                    
+
             </tbody>
 
             <tfoot>
-                <tr>
+                <!-- <tr>
                     <td colspan="2"> SUM NET in <%= invoice.currency %></td>
                     <td class="time"> <%= f(invoice.sumTimeMinutes) %></td>
                     <td colspan="2" class="price"><%= invoice.sumNet %> <%= invoice.currency %></td>
-                </tr>
+                </tr> -->
                 <tr>
-                    <td colspan="4" class="sum"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td>
+                    <!-- <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td> -->
+                    <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %></td>
+                    <td class="time"> <%= f(invoice.sumTimeMinutes) %></td>
                     <td class="price sum"><strong><%= invoice.sumGross %> <%= invoice.currency %></strong></td>
                 </tr>
                 <% if (invoice.currency !== 'CHF') { %>
-                <tr class="chf top">
+                <!-- <tr class="chf top">
                     <td colspan="4"> SUM NET in CHF</td>
                     <td class="price"><%= invoice.sumNetChf %> CHF</td>
-                </tr>
+                </tr> -->
                 <tr class="chf">
-                    <td colspan="4"> SUM GROSS in CHF incl <%= invoice.vat %>% VAT</td>
+                    <!-- <td colspan="4"> SUM GROSS in CHF incl <%= invoice.vat %>% VAT</td> -->
+                    <td colspan="4"> SUM GROSS in CHF</td>
                     <td class="price"><strong><%= invoice.sumGrossChf %> CHF</strong></td>
                 </tr>
                 <% } %>
