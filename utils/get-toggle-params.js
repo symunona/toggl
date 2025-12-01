@@ -14,6 +14,7 @@ module.exports.getInvoiceAndToggleParams = function (options, settings) {
     let from = moment().day((-7 * weekOffset) - 1).format(API_DATE_FORMAT)
     let to = moment().day((-7 * weekOffset) + 5).format(API_DATE_FORMAT)
     let week = moment(from).isoWeek() + 1
+    let queryYear = options.y || moment().year()
 
     if ('w' in options) {
         weekOffset = parseInt(options.w)

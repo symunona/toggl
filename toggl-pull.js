@@ -53,7 +53,11 @@ const client = SETTINGS.clients ? SETTINGS.clients[clientKey] : undefined
 
 if (!client){
     console.error(`Client ${clientKey} not found. Did you specify it in settings.json:clients?`)
-    process.exit()
+    console.log(SETTINGS)
+    console.log('----------------------------------------------------------')
+    console.warn(SETTINGS[clientKey])
+    console.log('----------------------------------------------------------')
+    process.exit(127)
 }
 
 console.log(`---<LOG retirever>---\n`)

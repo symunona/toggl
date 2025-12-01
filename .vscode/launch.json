@@ -42,6 +42,16 @@
                 "<node_internals>/**"
             ],
             "type": "pwa-node"
+        },
+        {
+            "name": "apiary",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "11", "-y", "2025", "-c", "apiary"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
         }
     ]
 }

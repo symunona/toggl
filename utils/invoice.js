@@ -66,6 +66,7 @@ module.exports.InvoiceItem = class InvoiceItem {
     hourlyNetPrice
     netPrice
     currency
+    date
 
     constructor(params) {
         Object.assign(this, params)

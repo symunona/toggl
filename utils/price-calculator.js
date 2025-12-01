@@ -4,21 +4,79 @@ const { InvoiceItem } = require('./invoice')
 
 /**
  * Fixed projects work differently than hourly ones, I need to be able to handle that.
- * 
- * @param {*} project 
- * @param {*} invoice 
+ *
+ * @param {*} project
+ * @param {*} invoice
  */
 module.exports = {
     caluculateSums,
+    calculateDaily,
     grossValue,
     netValue,
     round,
     inChf
 }
 
+function calculateDaily(project, invoice, client, exchangeRates) {
+    let sumDays = 0;
+    let sumGrossPrice = 0;
+    let dailyGrossPrice = client.dailyPriceGross;
+
+    const dailyEntries = {}
+
+    // Group entries by day
+    _.sortBy(project.items, 'time').reverse().forEach((entry) => {
+        // console.log(entry)
+        const date = new Date(entry.local_start)
+        const dayKey = date.toISOString().split('T')[0] // YYYY-MM-DD format
+
+        if (!dailyEntries[dayKey]) {
+            dailyEntries[dayKey] = {
+                date: dayKey,
+                topics: [],
+                durationMinutes: 60*8,
+                hourlyPriceNet: client.hourlyPriceNet,
+                sumGrossPrice: dailyGrossPrice
+            }
+            sumDays++;
+        }
+
+        if (entry.title && entry.title.time_entry) {
+            dailyEntries[dayKey].topics.push(entry.title.time_entry)
+        }
+    })
+
+
+    // Add daily rows as invoice items
+    Object.keys(dailyEntries)
+        .sort()
+        .forEach(dayKey => {
+            const day = dailyEntries[dayKey]
+            invoice.items.push(new InvoiceItem({
+                date: dayKey,
+                description: day.topics.join(', '),
+                dailyGrossPrice: dailyGrossPrice,
+                durationMinutes: day.durationMinutes,
+                durationFormatted: formatDuration(day.durationMinutes),
+            }))
+        })
+
+    invoice.sumTimeMinutes = sumDays * 8 * 60;
+    sumGrossPrice = sumDays * dailyGrossPrice;
+    invoice.sumGross = round(sumGrossPrice, 2)
+
+    if (invoice.currency !== 'chf'){
+        invoice.exchangeRate = exchangeRates[invoice.currency]
+
+        invoice.sumGrossChf = round(inChf(invoice.sumGross, invoice.currency, exchangeRates), 2)
+    }
+}
+
 function caluculateSums(project, invoice, client, exchangeRates){
     if (client.type === 'fixed'){
         return calculateFixed(project, invoice, client, exchangeRates)
+    } else if (client.type === 'daily'){
+        return calculateDaily(project, invoice, client, exchangeRates)
     } else {
         return calculateHourly(project, invoice, client, exchangeRates)
     }
@@ -58,7 +116,7 @@ function calculateFixed(project, invoice, client, exchangeRates){
 function calculateHourly(project, invoice, client, exchangeRates){
     let sumTimeMinutes = 0
     let sumNetPrice = 0
-    
+
     _.sortBy(project.items, 'time').reverse().map((entry) => {
 
         const durationSeconds = Math.round(entry.time * invoice.multiplier / 1000)

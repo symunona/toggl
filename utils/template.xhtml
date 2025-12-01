@@ -81,6 +81,12 @@
                 <td><%= invoice.client.tax %></td>
             </tr>
             <% } %>
+            <% if (invoice.client.representative) { %>
+            <tr>
+                <td>Representative:</td>
+                <td><%= invoice.client.representative %></td>
+            </tr>
+            <% } %>
         </table>
     </header>
     <div>
@@ -89,10 +95,22 @@
                 <tr>
                     <th class="index">#</th>
                     <th class="description">task description</th>
-                    <th class="time">time<br/>hh:mm</th>
-                    <th class="price">hourly<br/>
-                        <% if (invoice.type !== 'fixed') { %>
+
+                    <th class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                        time<br/>hh:mm
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            day
+                        <% } %>
+                    </th>
+
+                    <th class="price">rate<br/>
+                        <% if (invoice.type === 'hourly') { %>
                             <%= invoice.currency %> / h
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= invoice.currency %> / day
                         <% } %>
                     </th>
                     <th class="price">price<br/><%= invoice.currency %></th>
@@ -102,16 +120,31 @@
                 <% _.each( invoice.items, (item, index) => { %>
                 <tr>
                     <td class="index"><%= index + 1 %></td>
-                    <td class="description"><%= item.description %></td>
-                    <td class="time"><%= f(item.durationMinutes) %></td>
-                    <td class="price">
-                        <% if (invoice.type !== 'fixed') { %>
-                            <%= invoice.hourlyPriceNet %>
+                    <td class="description">
+                        <%= item.description %>
+                    </td>
+                    <td class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                            <%= f(item.durationMinutes) %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.date %>
                         <% } %>
                     </td>
                     <td class="price">
-                        <% if (invoice.type !== 'fixed') { %>
+                        <% if (invoice.type === 'hourly') { %>
+                            <%= invoice.hourlyPriceNet %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.dailyGrossPrice %>
+                        <% } %>
+                    </td>
+                    <td class="price">
+                        <% if (invoice.type === 'hourly') { %>
                             <%= item.netPrice %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.dailyGrossPrice %>
                         <% } %>
                     </td>
                 </tr>
@@ -123,7 +156,10 @@
                         <td class="description"><%= item.description %></td>
                         <td class="time"><%= item.durationMinutes && f(item.durationMinutes) %></td>
                         <td class="price">
-                            <% if (invoice.type !== 'fixed') { %>
+                            <% if (invoice.type === 'hourly') { %>
+                                <%= invoice.hourlyPriceNet %>
+                            <% } %>
+                            <% if (invoice.type === 'fixed') { %>
                                 <%= invoice.hourlyPriceNet %>
                             <% } %>
                         </td>
@@ -144,7 +180,11 @@
                 <tr>
                     <!-- <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td> -->
                     <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %></td>
-                    <td class="time"> <%= f(invoice.sumTimeMinutes) %></td>
+                    <td class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                        <%= f(invoice.sumTimeMinutes) %>
+                        <% } %>
+                    </td>
                     <td class="price sum"><strong><%= invoice.sumGross %> <%= invoice.currency %></strong></td>
                 </tr>
                 <% if (invoice.currency !== 'CHF') { %>
@@ -169,7 +209,7 @@
                     <td>BANK: <%= invoice.company.bank %></td>
                 </tr>
                 <tr>
-                    <td><%= invoice.company.address %></td>
+                    <td><%= invoice.company.address %>, <%= invoice.company.country %> </td>
                     <td>TAX: <%= invoice.company.tax %></td>
                 </tr>
                 <tr>
