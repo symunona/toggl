@@ -101,7 +101,7 @@
                         time<br/>hh:mm
                         <% } %>
                         <% if (invoice.type === 'daily') { %>
-                            day
+                            days
                         <% } %>
                     </th>
 
@@ -128,7 +128,7 @@
                             <%= f(item.durationMinutes) %>
                         <% } %>
                         <% if (invoice.type === 'daily') { %>
-                            <%= item.date %>
+                            <%= item.quantity %>
                         <% } %>
                     </td>
                     <td class="price">
@@ -136,7 +136,7 @@
                             <%= invoice.hourlyPriceNet %>
                         <% } %>
                         <% if (invoice.type === 'daily') { %>
-                            <%= item.dailyGrossPrice %>
+                            <%= item.dailyUnit %>
                         <% } %>
                     </td>
                     <td class="price">
@@ -144,7 +144,7 @@
                             <%= item.netPrice %>
                         <% } %>
                         <% if (invoice.type === 'daily') { %>
-                            <%= item.dailyGrossPrice %>
+                            <%= item.dailySum %>
                         <% } %>
                     </td>
                 </tr>

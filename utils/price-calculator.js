@@ -36,7 +36,7 @@ function calculateDaily(project, invoice, client, exchangeRates) {
                 topics: [],
                 durationMinutes: 60*8,
                 hourlyPriceNet: client.hourlyPriceNet,
-                sumGrossPrice: dailyGrossPrice
+                dailySum: dailyGrossPrice
             }
             sumDays++;
         }
@@ -55,11 +55,24 @@ function calculateDaily(project, invoice, client, exchangeRates) {
             invoice.items.push(new InvoiceItem({
                 date: dayKey,
                 description: day.topics.join(', '),
-                dailyGrossPrice: dailyGrossPrice,
+                dailyUnit: dailyGrossPrice,
+                dailySum: dailyGrossPrice,
                 durationMinutes: day.durationMinutes,
                 durationFormatted: formatDuration(day.durationMinutes),
             }))
         })
+
+    if (client.brief){
+        // Sum up all the daily rows
+        invoice.items = [new InvoiceItem({
+            description: client.brief,
+            dailyUnit: dailyGrossPrice,
+            dailySum: dailyGrossPrice * sumDays,
+            quantity: sumDays,
+            durationMinutes: sumDays * 8 * 60,
+            durationFormatted: formatDuration(sumDays * 8 * 60),
+        })]
+    }
 
     invoice.sumTimeMinutes = sumDays * 8 * 60;
     sumGrossPrice = sumDays * dailyGrossPrice;
