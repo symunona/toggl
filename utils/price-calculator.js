@@ -65,6 +65,9 @@ function calculateDaily(project, invoice, client, exchangeRates) {
     sumGrossPrice = sumDays * dailyGrossPrice;
     invoice.sumGross = round(sumGrossPrice, 2)
 
+    invoice.sumUsdPrice = round(inUsd(invoice.sumGross, invoice.currency, exchangeRates), 2);
+    console.log('SUM USD PRICE: ', invoice.sumUsdPrice)
+
     if (invoice.currency !== 'chf'){
         invoice.exchangeRate = exchangeRates[invoice.currency]
 
@@ -164,6 +167,12 @@ function netValue(value, vat){
 function inChf(price, currency, currencyMap){
     return price * currencyMap[currency]
 }
+
+function inUsd(price, currency, currencyMap){
+    return inChf(price, currency, currencyMap) / currencyMap['USD']
+}
+
+
 
 function round(price, zeros){
     return Math.round(price * Math.pow(10, zeros)) / Math.pow(10, zeros)
