@@ -82,6 +82,11 @@ function calculateDaily(project, invoice, client, exchangeRates) {
         invoice.exchangeRate = exchangeRates[invoice.currency]
 
         invoice.sumGrossChf = round(inChf(invoice.sumGross, invoice.currency, exchangeRates), 2)
+
+        // I got a hint here few month ago from Levi: as I am not VAT registered, I should not charge VAT on the invoice.
+        // Therefore all gross is actually the net.
+        // Future TODO: fix this for next year January, already start with a new toggl version!
+        invoice.sumNetChf = invoice.sumGrossChf
     }
 }
 
