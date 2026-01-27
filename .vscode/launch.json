@@ -17,7 +17,37 @@
             "name": "Toggl",
             "program": "${workspaceFolder}/toggl-pull.js",
             "request": "launch",
-            "args":[ "-w", "0", "-r", "20" ],
+            "args":[ "-m", "8", "-y", "2024", "-c", "RRF45k", "-save", "-pdf", "-overwrite" ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
+            "name": "Toggl-recent-export-test",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "6", "-y", "2024", "-c", "RR40", "-f" ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
+            "name": "RRF46k",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "11", "-y", "2024", "-c", "RRF46k"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
+            "name": "apiary",
+            "program": "${workspaceFolder}/toggl-pull.js",
+            "request": "launch",
+            "args":[ "-m", "11", "-y", "2025", "-c", "apiary"],
             "skipFiles": [
                 "<node_internals>/**"
             ],

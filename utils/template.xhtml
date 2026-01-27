@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %> - Invoice</title>
+    <style>
+        :root{
+            --border: #777;
+            --width: 900px;
+            --page-padding: <%= settings.page_padding || '60px' %>;
+        }
+
+        body{ width: var(--width); display: block; margin: 0 auto; padding: var(--page-padding) }
+
+        table {padding: 20px 0 20px; border-spacing: 0;}
+        .details{width: 100%}
+
+        .client th{text-align: left;}
+        .client tr td:first-child{ padding-left: 20px; }
+        .description{text-align: left;}
+        .price{ text-align: right; width: 100px}
+        .time{text-align: center; width: 100px}
+        .index{ text-align: center; width: 40px }
+        tfoot{margin-top: 10px}
+        .details thead tr th {border-bottom: 1px solid var(--border)}
+        .details tbody tr:last-child td {border-bottom: 1px solid var(--border)}
+        .details td { padding: 5px 2px}
+        .chf.top td {border-top: 1px solid var(--border)}
+        .logo{ float: right; height: 128px; width: 128px }
+        .logo img {width: 100%;}
+        .sum{ background: #ddd }
+
+        footer { color: #aaa; position: absolute; bottom: calc(var(--page-padding) - 40px); width: var(--width) }
+        footer table {width: 100%}
+        footer table td:last-child{text-align: right;}
+    </style>
+</head>
+<body>
+    <header>
+        <% if (settings.logo) { %>
+        <div class="logo">
+            <img src="<%= settings.logo %>">
+        </div>
+        <% } %>
+        <table>
+            <tr>
+                <td>ID:</td>
+                <td><strong><%= id %></strong></td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td><%= m(invoice.date).format(DF) %></td>
+            </tr>
+            <tr>
+                <td>Due</td>
+                <td><%= m(invoice.due).format(DF) %></td>
+            </tr>
+            <tr>
+                <td>Period</td>
+                <td><%= period %></td>
+            </tr>
+            <tr>
+                <td colspan="2"><%= exchangeRate %></td>
+                <td></td>
+            </tr>
+        </table>
+        <table class="client">
+            <tr>
+                <th colspan="2">Client</th>
+            </tr>
+            <tr>
+                <td>Name:</td>
+                <td><%= invoice.client.company %></td>
+            </tr>
+            <tr>
+                <td>Address:</td>
+                <td><%= invoice.client.address %></td>
+            </tr>
+            <% if (invoice.client.tax) { %>
+            <tr>
+                <td>Tax:</td>
+                <td><%= invoice.client.tax %></td>
+            </tr>
+            <% } %>
+            <% if (invoice.client.representative) { %>
+            <tr>
+                <td>Representative:</td>
+                <td><%= invoice.client.representative %></td>
+            </tr>
+            <% } %>
+        </table>
+    </header>
+    <div>
+        <table class="details">
+            <thead>
+                <tr>
+                    <th class="index">#</th>
+                    <th class="description">task description</th>
+
+                    <th class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                        time<br/>hh:mm
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            days
+                        <% } %>
+                    </th>
+
+                    <th class="price">rate<br/>
+                        <% if (invoice.type === 'hourly') { %>
+                            <%= invoice.currency %> / h
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= invoice.currency %> / day
+                        <% } %>
+                    </th>
+                    <th class="price">price<br/><%= invoice.currency %></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% _.each( invoice.items, (item, index) => { %>
+                <tr>
+                    <td class="index"><%= index + 1 %></td>
+                    <td class="description">
+                        <%= item.description %>
+                    </td>
+                    <td class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                            <%= f(item.durationMinutes) %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.quantity %>
+                        <% } %>
+                    </td>
+                    <td class="price">
+                        <% if (invoice.type === 'hourly') { %>
+                            <%= invoice.hourlyPriceNet %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.dailyUnit %>
+                        <% } %>
+                    </td>
+                    <td class="price">
+                        <% if (invoice.type === 'hourly') { %>
+                            <%= item.netPrice %>
+                        <% } %>
+                        <% if (invoice.type === 'daily') { %>
+                            <%= item.dailySum %>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+
+                <% _.each( invoice.client.extraItems, (item, index) => { %>
+                    <tr>
+                        <td class="index"><%= invoice.items.length + index + 1 %></td>
+                        <td class="description"><%= item.description %></td>
+                        <td class="time"><%= item.durationMinutes && f(item.durationMinutes) %></td>
+                        <td class="price">
+                            <% if (invoice.type === 'hourly') { %>
+                                <%= invoice.hourlyPriceNet %>
+                            <% } %>
+                            <% if (invoice.type === 'fixed') { %>
+                                <%= invoice.hourlyPriceNet %>
+                            <% } %>
+                        </td>
+                        <td class="price">
+                            <%= item.netPrice %>
+                        </td>
+                    </tr>
+                <% }) %>
+
+            </tbody>
+
+            <tfoot>
+                <!-- <tr>
+                    <td colspan="2"> SUM NET in <%= invoice.currency %></td>
+                    <td class="time"> <%= f(invoice.sumTimeMinutes) %></td>
+                    <td colspan="2" class="price"><%= invoice.sumNet %> <%= invoice.currency %></td>
+                </tr> -->
+                <tr>
+                    <!-- <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %> incl <%= invoice.vat %>% VAT</td> -->
+                    <td colspan="3" class="sum"> SUM GROSS in <%= invoice.currency %></td>
+                    <td class="time">
+                        <% if (invoice.type === 'hourly' || invoice.type === 'fixed') { %>
+                        <%= f(invoice.sumTimeMinutes) %>
+                        <% } %>
+                    </td>
+                    <td class="price sum"><strong><%= invoice.sumGross %> <%= invoice.currency %></strong></td>
+                </tr>
+                <% if (invoice.currency !== 'CHF') { %>
+                <!-- <tr class="chf top">
+                    <td colspan="4"> SUM NET in CHF</td>
+                    <td class="price"><%= invoice.sumNetChf %> CHF</td>
+                </tr> -->
+                <tr class="chf">
+                    <!-- <td colspan="4"> SUM GROSS in CHF incl <%= invoice.vat %>% VAT</td> -->
+                    <td colspan="4"> SUM GROSS in CHF</td>
+                    <td class="price"><strong><%= invoice.sumGrossChf %> CHF</strong></td>
+                </tr>
+                <% } %>
+            </tfoot>
+        </table>
+    </div>
+    <footer>
+        <table>
+            <tbody>
+                <tr>
+                    <td><%= invoice.company.name %></td>
+                    <td>BANK: <%= invoice.company.bank %><br/>IBAN: <%= invoice.company.iban %></td>
+                </tr>
+                <tr>
+                    <td><%= invoice.company.address %>, <%= invoice.company.country %> </td>
+                    <td>TAX: <%= invoice.company.tax %></td>
+                </tr>
+                <tr>
+                    <td><%= invoice.company.email %></td>
+                    <td><%= invoice.company.web %></td>
+                </tr>
+            </tbody>
+        </table>
+    </footer>
+</body>
+</html>

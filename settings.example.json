@@ -2,5 +2,30 @@
     "token": "GET_THIS_FROM_https://track.toggl.com/profile",
     // This is your workspace_id which you can get from the URL,
     // when clicking Reports: https://track.toggl.com/reports/summary/[workspace_id]
-    "workspace_id": 1137608
+    "workspace_id": 1137608,
+
+    "defaultVat": 27,
+
+    // My company info
+    "company":{
+        "name": "Mine co.",
+        "address": "Switzerland, 8040 Zürich",
+        "tax": "111231311",
+        "bank": "112345115",
+        "email": "asdf@asdf.com",
+        "web": "mine.xyz"
+    },
+
+    "clients": {
+        // In toggl, this will be the project's name
+        "clientKey": {
+            "company": "ABC Widgets. co.",
+            "country": "United States",
+            "address": "8601 Mulholland Dr, Los Angeles, CA 90046",
+            "tax": "1234555",
+            // Hourly rate
+            "hourlyPriceGross": 40,
+            "currency": "USD"
+        }
+    }
 }

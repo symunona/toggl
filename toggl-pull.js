@@ -18,281 +18,140 @@
  *
  */
 
-const { readFileSync, existsSync, writeFileSync } = require('fs')
+const { readFileSync } = require('fs')
 const { join } = require('path')
+const { fetchCached } = require('./utils/cache')
+const { cmdParamsParser } = require('./utils/options-parser')
 
 const SETTINGS = JSON.parse(readFileSync(join(__dirname, 'settings.json'), 'utf8'))
-const CACHE_FILE = './cache.json'
 
-const cache = loadCache()
-
-const LINE_LENGTH = 100
-const API_DATE_FORMAT = "YYYY-MM-DD"
 const API_BASE = 'https://api.track.toggl.com/reports/api/v2/summary'
-const axios = require('axios')
-const moment = require('moment')
 const _ = require('underscore')
+const { getInvoiceAndToggleParams } = require('./utils/get-toggle-params')
+const { getCurrencyExchangeRatesForDay } = require('./utils/currency-exchange')
+const { Invoice, consolePrinter, getNextInvoiceId, save, getInvoiceByPeriod, pdf, getInvoiceTitle } = require('./utils/invoice')
 
-const PAD = 2
+const { caluculateSums, round, netValue } = require('./utils/price-calculator')
 
-const options = parseParams()
+const cmdLineParams = 'node toggl-pull.js '+ process.argv.slice(2).join(' ')
+
+const options = cmdParamsParser()
 
 if ('h' in options) {
     console.log(readFileSync('./help.md', 'utf-8'))
     process.exit()
 }
 
-// DEFAULT: Last Week
+const clientKey = options.c;
 
-let weekOffset = 1
-
-let from = moment().day((-7 * weekOffset) - 1).format(API_DATE_FORMAT)
-let to = moment().day((-7 * weekOffset) + 5).format(API_DATE_FORMAT)
-let week = moment(from).isoWeek() + 1
-let multiplier = 1
-
-console.log(`---<LOG retirever>---`)
-
-// number: week offset
-if ('w' in options) {
-    weekOffset = parseInt(options.w)
-    from = moment().day((-7 * weekOffset) - 1).format(API_DATE_FORMAT)
-    to = moment().day((-7 * weekOffset) + 5).format(API_DATE_FORMAT)
-} else if ('m' in options) {
-    // All activities in a month.
-    const monthNumber = options.m
-    if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-        throw new Error('please provide a valid month number between 1-12!')
-    }
-    const daysInMonth = moment().month(monthNumber - 1).daysInMonth()
-    from = moment().month(monthNumber - 1).day(0).startOf('day').format(API_DATE_FORMAT)
-    to = moment().month(monthNumber - 1).day(daysInMonth - 1).endOf('day').format(API_DATE_FORMAT)
-    week = null
+if (!clientKey){
+    console.error('You need to specify a client -c param!')
+    process.exit()
 }
 
-// Multiplier - for accounting for context switches - given in percentages
-if (options.r) {
-    multiplier = 1 + (options.r / 100)
-    console.log(`Context Switch Multiplier: ${Math.round(multiplier * 100)}%`)
+const client = SETTINGS.clients ? SETTINGS.clients[clientKey] : undefined
+
+if (!client){
+    console.error(`Client ${clientKey} not found. Did you specify it in settings.json:clients?`)
+    console.log(SETTINGS)
+    console.log('----------------------------------------------------------')
+    console.warn(SETTINGS[clientKey])
+    console.log('----------------------------------------------------------')
+    process.exit(127)
 }
 
-const postParams = {
-    workspace_id: SETTINGS.workspace_id,
-    since: from,
-    until: to,
-    user_agent: 'bond'
-}
-
-const companyFields = ['company', 'country', 'address', 'tax']
-
-
-getData(postParams).then((response) => {
-    const projects = response
-
-    for (const i in projects) {
-        const project = projects[i]
-
-        if (options.s && options.s !== project.title.project) continue
-
-        const client = SETTINGS.clients ? SETTINGS.clients[project.title.project] : undefined
-
-        console.log('')
-        // console.log(project.title.project)
-
-        hr('Invoice')
-
-        if (client) {
-            console.log('Client: ')
-
-            companyFields.map((key) => {
-                console.log(tableLine([
-                    {width: 2},
-                    {
-                        width: LINE_LENGTH,
-                        text: client[key]
-                    }
-                ]))})
-        }
-
-        console.log('')
-        console.log('Invoice Date:', moment().format(API_DATE_FORMAT))
-
-
-        hr()
-
-        if (week) {
-            console.log(`Week ${week}: Worked between: ${from} -> ${to}`)
-        } else {
-            console.log(`Work between ${from} -> ${to}`)
-        }
-
-        console.log('')
-        console.log('')
-
-        let sumTime = 0
-        let sumPrice = 0
-
-        const hourlyPrice = client?.rate ? parseInt(client.rate) : ''
-        const hourlyPriceWithCurrency = hourlyPrice ? hourlyPrice + ' ' + client.currency : ''
-
-        printFormattedLine('description', 'time', 'hourly', 'price')
-        printFormattedLine('', 'hh:mm', client.currency + ' / h', client.currency)
-        hr()
-
-        _.sortBy(project.items, 'time').reverse().map((entry) => {
-            const durationSeconds = Math.round(entry.time * multiplier / 1000)
-            const durationRoundMinutes = Math.round(durationSeconds / 60)
-            sumTime += durationRoundMinutes
-            let price
-            if (hourlyPrice) {
-                price = Math.round(hourlyPrice * durationRoundMinutes / 60)
-                sumPrice += price
-                if (client.currency) {
-                    price += ' ' + client.currency
-                }
-            }
-            printFormattedLine(entry.title.time_entry, durationSeconds, hourlyPriceWithCurrency, price)
-        })
-
-        hr()
-        printFormattedLine('SUM', sumTime * 60, '', sumPrice + ' ' + client.currency)
-
-        // In CHF
-
-        console.log('')
-    }
-}).catch((error) => {
-    console.error('hmm...', error)
-    debugger
-})
-
+console.log(`---<LOG retirever>---\n`)
+console.log(cmdLineParams)
 console.log('')
 
-// --------------------------------------------------------------------------------------------------
+const {
+    from,
+    to,
+    week,
+    vat,
 
+    date,
+    due,
+    year,
 
-// text     time (5) unit_price (3) price (4)
-/**
- * [
- *    0: {width, text, align?'left' default}
- *    1: {width, text, align}
- * ]
- * padding:
- */
-function tableLine(table) {
-    return table.map((field) => {
-        let text = field.text === undefined ? '' : String(field.text)
-        if (text.length > field.width) {
-            // Good enough for now
-            text = text.substring(0, field.width - 3) + '...'
-        } else if (text.length < field.width) {
-            if (field.align === 'right') {
-                text = ' '.repeat(field.width - text.length) + text
-            } else {
-                // Default LEFT align
-                text = text + ' '.repeat(field.width - text.length)
-            }
-        }
+    multiplier
+} = getInvoiceAndToggleParams(options, SETTINGS)
 
-        return text
-    }).join(' '.repeat(PAD))
-}
+const hourlyPriceNet = client.hourlyPriceNet || round(netValue(client.hourlyPriceGross, vat), 2)
 
+const invoice = new Invoice({
+    from, to, week, vat, date, client, clientKey,
+    due, year, type: client.type,
+    hourlyPriceNet,
+    multiplier,
+    currency: client.currency,
+    company: SETTINGS.company,
+    options: options,
 
-const WIDTHS = {
-    time: 5,
-    unitPrice: 7,
-    price: 8
-}
+    id: options.id || getNextInvoiceId(year)
+})
 
-function printFormattedLine(text, duration, unitPrice, price) {
+const invoiceAlready = getInvoiceByPeriod(year, invoice)
 
-    const lineTextWidth = LINE_LENGTH - WIDTHS.time - WIDTHS.unitPrice - WIDTHS.price - (PAD * 3)
+if (invoiceAlready){
+    console.warn('\nAn invoice covering this time and client already exists!')
+    console.log('Adjusted the ID. If you want to overwrite the original invoice, call it with flags:')
+    console.log(cmdLineParams + ' -save -overwrite\n')
 
-    console.log(tableLine([
-        { text: text, width: lineTextWidth },
-        { text: isNaN(parseInt(duration)) ? duration : formatDuration(duration), width: WIDTHS.time },
-        { text: unitPrice, width: WIDTHS.unitPrice, align: 'right' },
-        { text: price, width: WIDTHS.price, align: 'right' },
-    ]))
-}
-
-function hr(text) {
-    if (!text){
-        console.log('—'.repeat(LINE_LENGTH))
-        return
+    if (options.id && (options.id !== invoiceAlready.id)){
+        console.warn('You also provided and -id for your invoice, that is not equal with the')
+        console.warn('already existing one...')
+        console.warn(`The already existing invoice's ID ${invoiceAlready.id} will be used!`)
     }
-    const textLength = text.length + (PAD * 2 + 2)
-    const half = (LINE_LENGTH - textLength) / 2
-    let out = '—'.repeat(half) + '<' + ' '.repeat(PAD) + text + ' '.repeat(PAD) + '>' + '—'.repeat(half)
-    if (half !== Math.floor(half)){
-        out+= '—'
-    }
-    console.log(out)
+
+    invoice.id = invoiceAlready.id
+    invoice.date = invoiceAlready.date
+    invoice.due = invoiceAlready.due
+    invoice.fileNameRoot = getInvoiceTitle(invoiceAlready)
 }
 
-
-
-// ---------------------------< cache and api >--------------------------------
-
-async function getData(postParams) {
-    const cacheKey = JSON.stringify(postParams).replace(/"/g, '').replace(/:/g, '=')
-    if (cache[cacheKey]) {
-        console.log('Cached')
-        return cache[cacheKey]
-    }
-    console.log('Not Cached')
-    const response = await axios.get(API_BASE, {
-        params: postParams,
+const fetchCachedParams = {
+    url: API_BASE,
+    params: {
+        params: {
+            workspace_id: SETTINGS.workspace_id,
+            since: from,
+            until: to,
+            user_agent: 'bond'
+        },
         auth: {
             'username': SETTINGS.token,
             'password': 'api_token'
         }
-    })
-    cache[cacheKey] = response.data.data
-    saveCache()
-    return response.data.data
-}
-
-
-
-function saveCache() {
-    writeFileSync(CACHE_FILE, JSON.stringify(cache), 'utf8')
-}
-
-
-function loadCache() {
-    if (existsSync(CACHE_FILE)) {
-        try {
-            return JSON.parse(readFileSync(CACHE_FILE, 'utf8'))
-        }
-        catch (e) {
-            console.warn('Cache load error: ', e)
-            return {}
-        }
     }
-    return {}
 }
 
+Promise.all([
+    fetchCached(fetchCachedParams, options.f),
+    getCurrencyExchangeRatesForDay(date)])
+.then(async ([togglProjectList, exchangeRates])=>{
 
-function formatDuration(seconds) {
-    let duration = moment.duration(seconds, 'seconds')
-    hours = duration.hours() + (duration.days() * 24)
+    const project = togglProjectList.data.find((project) => project.title.project === clientKey)
 
-    return ('' + hours).padStart(2, 0) + ':' + ('' + duration.minutes()).padStart(2, 0)
-}
-
-
-function parseParams() {
-    const options = {}
-    for (let paramIndex in process.argv) {
-        const paramKey = process.argv[paramIndex]
-        // Save all the params starting with a dash as the key, and the next arg as it's value.
-        if (paramKey.startsWith('-')) {
-            let value = process.argv[parseInt(paramIndex) + 1]
-            if (!isNaN(parseInt(value))) value = parseInt(value)
-            options[paramKey.substring(1)] = value
-        }
+    if (!project){
+        console.error(`No entries found for client ${clientKey} between ${from} and ${to} this period in toggl!`)
+        return;
     }
-    return options
-}
+
+    caluculateSums(project, invoice, client, exchangeRates)
+
+    if ('save' in options){
+        save(invoice, 'overwrite' in options)
+        pdf(invoice, SETTINGS)
+    }
+
+    console.log('\n\n\n')
+
+    console.log(consolePrinter(invoice))
+    if ('pdf' in options){
+        pdf(invoice, SETTINGS)
+    }
+
+    console.log('\n\n\n')
+})
+
